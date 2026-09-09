@@ -1,27 +1,24 @@
 -- Ejemplo 03: Proyecciones holograficas de telemetria galactica
 -- Demuestra el reconocimiento sintactico de los distintos tipos de graficas
 
-datos_flota <- abrir_holocron "examples/datos/telemetria_flota.csv"
+datos_flota = abrir_holocron "examples/datos/telemetria_flota.csv"
 
 -- Proyeccion holografica de barras para comparar victorias por faccion
-proyectar_holograma barras desde datos_flota
-    eje_x := "faccion"
-    eje_y := "victorias"
-    holotitulo := "Total de victorias registradas por faccion"
-    guardar_proyeccion := "salidas/victorias_por_faccion.png"
-fin_holograma
+holograma barras datos_flota
+    eje_x "faccion"
+    eje_y "victorias"
+    titulo "Total de victorias registradas por faccion"
+    guardar "salidas/victorias_por_faccion.png"
 
 -- Proyeccion holografica de dispersion para correlacionar escudos con victorias
-proyectar_holograma dispersion desde datos_flota
-    eje_x := "escudos"
-    eje_y := "victorias"
-    holotitulo := "Distribucion de capacidad defensiva vs victorias"
-    guardar_proyeccion := "salidas/escudos_vs_victorias.png"
-fin_holograma
+holograma dispersion datos_flota
+    eje_x "escudos"
+    eje_y "victorias"
+    titulo "Distribucion de capacidad defensiva vs victorias"
+    guardar "salidas/escudos_vs_victorias.png"
 
 -- Proyeccion holografica de histograma para analizar niveles de escudo
-proyectar_holograma histograma desde datos_flota
-    eje_x := "escudos"
-    holotitulo := "Frecuencia de rangos de escudos"
-    guardar_proyeccion := "salidas/distribucion_escudos.png"
-fin_holograma
+holograma histograma datos_flota
+    eje_x "escudos"
+    titulo "Frecuencia de rangos de escudos"
+    guardar "salidas/distribucion_escudos.png"

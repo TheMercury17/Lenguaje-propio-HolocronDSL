@@ -64,6 +64,11 @@ class HolocronDSLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by HolocronDSLParser#listaIdentificadoresOpcional.
+    def visitListaIdentificadoresOpcional(self, ctx:HolocronDSLParser.ListaIdentificadoresOpcionalContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by HolocronDSLParser#operacionFiltrar.
     def visitOperacionFiltrar(self, ctx:HolocronDSLParser.OperacionFiltrarContext):
         return self.visitChildren(ctx)
@@ -74,8 +79,8 @@ class HolocronDSLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by HolocronDSLParser#operacionAlinear.
-    def visitOperacionAlinear(self, ctx:HolocronDSLParser.OperacionAlinearContext):
+    # Visit a parse tree produced by HolocronDSLParser#operacionOrdenar.
+    def visitOperacionOrdenar(self, ctx:HolocronDSLParser.OperacionOrdenarContext):
         return self.visitChildren(ctx)
 
 
@@ -104,8 +109,8 @@ class HolocronDSLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by HolocronDSLParser#operacionSintetizar.
-    def visitOperacionSintetizar(self, ctx:HolocronDSLParser.OperacionSintetizarContext):
+    # Visit a parse tree produced by HolocronDSLParser#operacionResumir.
+    def visitOperacionResumir(self, ctx:HolocronDSLParser.OperacionResumirContext):
         return self.visitChildren(ctx)
 
 

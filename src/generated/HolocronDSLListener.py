@@ -107,6 +107,15 @@ class HolocronDSLListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by HolocronDSLParser#listaIdentificadoresOpcional.
+    def enterListaIdentificadoresOpcional(self, ctx:HolocronDSLParser.ListaIdentificadoresOpcionalContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#listaIdentificadoresOpcional.
+    def exitListaIdentificadoresOpcional(self, ctx:HolocronDSLParser.ListaIdentificadoresOpcionalContext):
+        pass
+
+
     # Enter a parse tree produced by HolocronDSLParser#operacionFiltrar.
     def enterOperacionFiltrar(self, ctx:HolocronDSLParser.OperacionFiltrarContext):
         pass
@@ -125,12 +134,12 @@ class HolocronDSLListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by HolocronDSLParser#operacionAlinear.
-    def enterOperacionAlinear(self, ctx:HolocronDSLParser.OperacionAlinearContext):
+    # Enter a parse tree produced by HolocronDSLParser#operacionOrdenar.
+    def enterOperacionOrdenar(self, ctx:HolocronDSLParser.OperacionOrdenarContext):
         pass
 
-    # Exit a parse tree produced by HolocronDSLParser#operacionAlinear.
-    def exitOperacionAlinear(self, ctx:HolocronDSLParser.OperacionAlinearContext):
+    # Exit a parse tree produced by HolocronDSLParser#operacionOrdenar.
+    def exitOperacionOrdenar(self, ctx:HolocronDSLParser.OperacionOrdenarContext):
         pass
 
 
@@ -179,12 +188,12 @@ class HolocronDSLListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by HolocronDSLParser#operacionSintetizar.
-    def enterOperacionSintetizar(self, ctx:HolocronDSLParser.OperacionSintetizarContext):
+    # Enter a parse tree produced by HolocronDSLParser#operacionResumir.
+    def enterOperacionResumir(self, ctx:HolocronDSLParser.OperacionResumirContext):
         pass
 
-    # Exit a parse tree produced by HolocronDSLParser#operacionSintetizar.
-    def exitOperacionSintetizar(self, ctx:HolocronDSLParser.OperacionSintetizarContext):
+    # Exit a parse tree produced by HolocronDSLParser#operacionResumir.
+    def exitOperacionResumir(self, ctx:HolocronDSLParser.OperacionResumirContext):
         pass
 
 

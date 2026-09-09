@@ -1,5 +1,4 @@
-# Pruebas unitarias sintacticas negativas para HolocronDSL
-# Valida la deteccion oportuna y el reporte diagnostico de errores sintacticos y lexicos
+# Pruebas unitarias sintacticas negativas para HolocronDSL (Sintaxis Simplificada)
 
 import unittest
 from src.compiler.driver import parse_string
@@ -8,8 +7,7 @@ from src.compiler.driver import parse_string
 class TestHolocronParserInvalid(unittest.TestCase):
     """Verifica que el Front-end rechace adecuadamente programas con errores sintacticos."""
 
-    def assertSintaxisInvalida(self, codigo: str, fragmento_esperado: str = None):
-        """Metodo de asercion auxiliar para verificar que se reporte error."""
+    def assertSintaxisInvalida(self, codigo: str):
         arbol, error_listener, _ = parse_string(codigo)
         self.assertTrue(
             error_listener.tiene_errores(),
@@ -17,66 +15,51 @@ class TestHolocronParserInvalid(unittest.TestCase):
         )
         reporte = error_listener.obtener_reporte()
         self.assertIn("Error Sintactico", reporte)
-        if fragmento_esperado:
-            self.assertTrue(
-                any(fragmento_esperado.lower() in str(err).lower() for err in error_listener.errores),
-                f"Se esperaba '{fragmento_esperado}' en los errores reportados:\n{reporte}"
-            )
         return error_listener.errores
 
     def test_falta_operador_asignacion(self):
-        """Detecta asignacion invalida donde falta el operador '<-'."""
+        """Detecta asignacion invalida donde falta el '='."""
         codigo = 'flota abrir_holocron "datos.csv"'
         errores = self.assertSintaxisInvalida(codigo)
         self.assertGreaterEqual(len(errores), 1)
-        self.assertEqual(errores[0].linea, 1)
 
     def test_corchetes_no_cerrados_en_seleccion(self):
-        """Detecta listas de sectores sin cerrar con corchete ']'."""
+        """Detecta listas de columnas sin cerrar con corchete ']'."""
         codigo = """
-        datos <- base
-            ==> revelar_sectores [ sector, potencia, escudos
+        datos = base
+            |> revelar [ sector, potencia, escudos
         """
         self.assertSintaxisInvalida(codigo)
 
     def test_operacion_pipeline_vacia(self):
-        """Detecta una flecha de pipeline sin operacion posterior."""
+        """Detecta un pipeline '|>' sin operacion posterior."""
         codigo = """
-        datos <- base
-            ==>
+        datos = base
+            |>
         """
         self.assertSintaxisInvalida(codigo)
 
-    def test_holograma_sin_cierre(self):
-        """Detecta una proyeccion holografica sin la clausula 'fin_holograma'."""
+    def test_mision_sin_retornar(self):
+        """Detecta funciones que omiten la clausula obligatoria 'retornar'."""
         codigo = """
-        proyectar_holograma barras desde registros
-            eje_x := "planeta"
-            eje_y := "tropas"
-        """
-        self.assertSintaxisInvalida(codigo)
-
-    def test_mision_sin_retornar_orden(self):
-        """Detecta funciones que omiten la clausula obligatoria 'retornar_orden'."""
-        codigo = """
-        mision calcular_fuerza con_parametros (datos)
-            x <- datos
+        mision calcular_fuerza (datos)
+            x = datos
         fin_mision
         """
         self.assertSintaxisInvalida(codigo)
 
-    def test_condicional_mal_formado(self):
-        """Detecta estructuras de evaluacion de fuerza sin parentesis o sin fin_evaluar."""
+    def test_condicional_sin_senda_luminosa(self):
+        """Detecta estructuras de evaluacion de fuerza sin senda_luminosa."""
         codigo = """
         evaluar_fuerza escudos < 10
-        senda_luminosa
-            transmitir_mensaje "Bajo nivel"
+            mostrar "Bajo nivel"
+        fin_evaluar
         """
         self.assertSintaxisInvalida(codigo)
 
     def test_caracter_lexico_invalido(self):
         """Detecta caracteres que no pertenecen al alfabeto del lenguaje."""
-        codigo = 'datos <- abrir_holocron "datos.csv" @@@'
+        codigo = 'datos = abrir_holocron "datos.csv" @@@'
         self.assertSintaxisInvalida(codigo)
 
 

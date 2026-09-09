@@ -4,12 +4,6 @@
 **Lenguajes de Programacion y Transduccion (2026-2)**  
 **Grupo 5:** Andres Sebastian Coral Vallejo, Carol Arenas Cardona  
 
-La siguiente especificacion utiliza la notacion estandar EBNF (Extended Backus-Naur Form):
-- `{ A }` denota cero o mas repeticiones de `A`.
-- `[ A ]` denota cero o una aparicion opcional de `A`.
-- `( A | B )` denota seleccion alternativa.
-- Los simbolos terminales se encierran entre comillas simples `'...'` o se especifican en mayusculas.
-
 ---
 
 ## 1. Reglas Sintacticas (No Terminales)
@@ -27,19 +21,19 @@ Sentencia
     | SentenciaTransmision ;
 
 DeclaracionMision
-    = 'mision' ID 'con_parametros' '(' [ ListaParametros ] ')'
+    = 'mision' ID '(' [ ListaParametros ] ')'
       { Sentencia }
-      'retornar_orden' ExpresionPipeline
+      'retornar' ExpresionPipeline
       'fin_mision' ;
 
 ListaParametros
     = ID { ',' ID } ;
 
 SentenciaAsignacion
-    = [ 'canalizar' ] ID '<-' ExpresionPipeline ;
+    = ID '=' ExpresionPipeline ;
 
 ExpresionPipeline
-    = ExpresionBase { '==>' OperacionPipeline } ;
+    = ExpresionBase { '|>' OperacionPipeline } ;
 
 ExpresionBase
     = InstruccionCarga
@@ -56,38 +50,39 @@ OperacionPipeline
     = OperacionSeleccionar
     | OperacionFiltrar
     | OperacionForjar
-    | OperacionAlinear
+    | OperacionOrdenar
     | OperacionEliminarClones
     | OperacionSanarVacios
     | OperacionAgrupar
-    | OperacionSintetizar ;
+    | OperacionResumir ;
 
 OperacionSeleccionar
-    = 'revelar_sectores' '[' ListaIdentificadores ']' ;
+    = 'revelar' ( '[' ListaIdentificadores ']' | ListaIdentificadores ) ;
 
 OperacionFiltrar
-    = 'purgar_donde' ExpresionBooleana ;
+    = 'purgar' [ 'donde' ] ExpresionBooleana ;
 
 OperacionForjar
-    = 'forjar_cristal' ID ':=' ExpresionAritmetica ;
+    = 'forjar' ID '=' ExpresionAritmetica ;
 
-OperacionAlinear
-    = 'alinear_flota' ID [ 'orden_ascendente' | 'orden_descendente' ] ;
+OperacionOrdenar
+    = 'ordenar' [ 'por' ] ID [ 'ascendente' | 'descendente' ] ;
 
 OperacionEliminarClones
     = 'eliminar_clones' ;
 
 OperacionSanarVacios
-    = 'sanar_vacios' ( 'descartar' | 'sustituir_con' Literal ) ;
+    = 'sanar_vacios' ( 'descartar' | 'con' Literal ) ;
 
 OperacionAgrupar
-    = 'agrupar_sector' '[' ListaIdentificadores ']' ;
+    = 'agrupar' [ 'por' ] ( '[' ListaIdentificadores ']' | ListaIdentificadores ) ;
 
-OperacionSintetizar
-    = 'sintetizar_indicadores' '[' AsignacionAgregacion { ',' AsignacionAgregacion } ']' ;
+OperacionResumir
+    = 'resumir' ( '[' AsignacionAgregacion { ',' AsignacionAgregacion } ']'
+                | AsignacionAgregacion { ',' AsignacionAgregacion } ) ;
 
 AsignacionAgregacion
-    = ID ':=' LlamadaAgregacion ;
+    = ID '=' LlamadaAgregacion ;
 
 LlamadaAgregacion
     = 'recuento' '(' ')'
@@ -102,18 +97,18 @@ SentenciaArchivado
     = 'archivar_holocron' ID 'en' CADENA [ 'delimitado_por' CADENA ] ;
 
 SentenciaHolograma
-    = 'proyectar_holograma' TipoGrafica 'desde' ID
+    = 'holograma' TipoGrafica ID
       { PropiedadHolograma }
-      'fin_holograma' ;
+      [ 'fin_holograma' ] ;
 
 TipoGrafica
     = 'barras' | 'lineas' | 'dispersion' | 'histograma' | 'caja' ;
 
 PropiedadHolograma
-    = ( 'eje_x' | 'eje_y' | 'holotitulo' | 'guardar_proyeccion' ) ':=' CADENA ;
+    = ( 'eje_x' | 'eje_y' | 'titulo' | 'guardar' ) CADENA ;
 
 SentenciaCondicional
-    = 'evaluar_fuerza' '(' ExpresionBooleana ')'
+    = 'evaluar_fuerza' ExpresionBooleana
       'senda_luminosa'
           { Sentencia }
       [ 'senda_oscura'
@@ -121,16 +116,16 @@ SentenciaCondicional
       'fin_evaluar' ;
 
 SentenciaTransmision
-    = 'transmitir_mensaje' ExpresionPipeline ;
+    = ( 'mostrar' | 'transmitir' ) ExpresionPipeline ;
 
 ExpresionBooleana
-    = TerminoBooleano { 'o_fuerza' TerminoBooleano } ;
+    = TerminoBooleano { ( 'o' | 'o_fuerza' ) TerminoBooleano } ;
 
 TerminoBooleano
-    = FactorBooleano { 'y_fuerza' FactorBooleano } ;
+    = FactorBooleano { ( 'y' | 'y_fuerza' ) FactorBooleano } ;
 
 FactorBooleano
-    = 'no_fuerza' FactorBooleano
+    = ( 'no' | 'no_fuerza' ) FactorBooleano
     | ComparacionRelacional
     | '(' ExpresionBooleana ')'
     | BOOL ;
@@ -151,32 +146,11 @@ FactorPotencia
     = AtomoAritmetico [ '^' FactorPotencia ] ;
 
 AtomoAritmetico
-    = NUMERO
-    | CADENA
-    | BOOL
-    | ID
-    | '(' ExpresionAritmetica ')' ;
+    = NUMERO | CADENA | BOOL | ID | '(' ExpresionAritmetica ')' ;
 
 ListaIdentificadores
     = ID { ',' ID } ;
 
 Literal
     = NUMERO | CADENA | BOOL ;
-```
-
----
-
-## 2. Reglas Lexicas (Terminales)
-
-```ebnf
-BOOL              = 'cierto_es' | 'falso_es' ;
-NUMERO            = DIGITO { DIGITO } [ '.' DIGITO { DIGITO } ] ;
-CADENA            = '"' { CARACTER_CADENA } '"' ;
-ID                = ( LETRA | '_' ) { LETRA | DIGITO | '_' } ;
-
-DIGITO            = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
-LETRA             = 'a'..'z' | 'A'..'Z' ;
-COMENTARIO_LINEA  = '--' { CARACTER_SIN_SALTO } ( '\r' | '\n' ) ;
-COMENTARIO_BLOQUE = '/-' { CUALQUIER_CARACTER } '-/' ;
-ESPACIOS          = { ' ' | '\t' | '\r' | '\n' } ;
 ```

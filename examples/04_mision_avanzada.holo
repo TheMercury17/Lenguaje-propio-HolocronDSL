@@ -5,25 +5,25 @@
   Mision de preparacion estandar para escuadrones de asalto.
   Recibe una tabla de telemetria y un umbral minimo de escudos.
 -/
-mision filtrar_escuadron con_parametros (datos_origen, umbral_defensa)
-    filtrados <- datos_origen
-        ==> purgar_donde escudos >= umbral_defensa y_fuerza hiperimpulsor == cierto_es
-        ==> alinear_flota victorias orden_descendente
+mision filtrar_escuadron (datos_origen, umbral_defensa)
+    filtrados = datos_origen
+        |> purgar donde escudos >= umbral_defensa y hiperimpulsor == cierto_es
+        |> ordenar por victorias descendente
     
-    retornar_orden filtrados
+    retornar filtrados
 fin_mision
 
 -- Programa principal
-registro_flota <- abrir_holocron "examples/datos/telemetria_flota.csv"
+registro_flota = abrir_holocron "examples/datos/telemetria_flota.csv"
 
 -- Invocar la mision definida con parametros
-escuadron_pesado <- filtrar_escuadron(registro_flota, 100)
+escuadron_pesado = filtrar_escuadron(registro_flota, 100)
 
 -- Evaluacion condicional de la situacion tactica
-evaluar_fuerza (cierto_es y_fuerza no_fuerza falso_es)
+evaluar_fuerza cierto_es y no falso_es
 senda_luminosa
     archivar_holocron escuadron_pesado en "salidas/escuadron_aprobado.csv"
-    transmitir_mensaje "Escuadron validado bajo la senda luminosa."
+    mostrar "Escuadron validado bajo la senda luminosa."
 senda_oscura
-    transmitir_mensaje "Alerta: perturbacion detectada en la evaluacion tactica."
+    mostrar "Alerta: perturbacion detectada en la evaluacion tactica."
 fin_evaluar

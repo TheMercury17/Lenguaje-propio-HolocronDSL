@@ -1,14 +1,14 @@
 grammar HolocronDSL;
 
 // =============================================================================
-// Gramatica de HolocronDSL
+// Gramatica de HolocronDSL (Version Simplificada e Intuitiva)
 // Lenguaje de Dominio Especifico para Ciencia de Datos y Visualizacion
 // Asignatura: Lenguajes de Programacion y Transduccion - Semestre 2026-2
 // Grupo 5: Andres Sebastian Coral Vallejo, Carol Arenas Cardona
 // =============================================================================
 
 // -----------------------------------------------------------------------------
-// REGLAS DEL PARSER (Sintaxis del Lenguaje)
+// REGLAS DEL PARSER (Sintaxis Simplificada)
 // -----------------------------------------------------------------------------
 
 programa
@@ -24,11 +24,11 @@ sentencia
     | sentenciaTransmision
     ;
 
-// -- Definicion de funciones y abstraccion --
+// -- Definicion de funciones (Misiones) --
 declaracionMision
-    : MISION ID CON_PARAMETROS LPAREN listaParametros? RPAREN
+    : MISION ID LPAREN listaParametros? RPAREN
         sentencia*
-        RETORNAR_ORDEN expresionPipeline
+        RETORNAR expresionPipeline
       FIN_MISION
     ;
 
@@ -36,13 +36,13 @@ listaParametros
     : ID (COMMA ID)*
     ;
 
-// -- Asignacion y encadenamiento (Pipelines) --
+// -- Asignacion simple y Pipelines --
 sentenciaAsignacion
-    : CANALIZAR? ID ASIGNAR expresionPipeline
+    : ID OP_ASIG expresionPipeline
     ;
 
 expresionPipeline
-    : expresionBase (FLECHA_PIPELINE operacionPipeline)*
+    : expresionBase (PIPE operacionPipeline)*
     ;
 
 expresionBase
@@ -59,37 +59,42 @@ llamadaMision
     : ID LPAREN (expresionPipeline (COMMA expresionPipeline)*)? RPAREN
     ;
 
-// -- Operaciones dentro del flujo de transformacion --
+// -- Operaciones dentro del pipeline --
 operacionPipeline
     : operacionSeleccionar
     | operacionFiltrar
     | operacionForjar
-    | operacionAlinear
+    | operacionOrdenar
     | operacionEliminarClones
     | operacionSanarVacios
     | operacionAgrupar
-    | operacionSintetizar
+    | operacionResumir
     ;
 
 operacionSeleccionar
-    : REVELAR_SECTORES LBRACK listaIdentificadores RBRACK
+    : REVELAR listaIdentificadoresOpcional
+    ;
+
+listaIdentificadoresOpcional
+    : LBRACK listaIdentificadores RBRACK
+    | listaIdentificadores
     ;
 
 operacionFiltrar
-    : PURGAR_DONDE expresionBooleana
+    : PURGAR DONDE? expresionBooleana
     ;
 
 operacionForjar
-    : FORJAR_CRISTAL ID OP_FORJAR expresionAritmetica
+    : FORJAR ID OP_ASIG expresionAritmetica
     ;
 
-operacionAlinear
-    : ALINEAR_FLOTA ID ordenDireccion?
+operacionOrdenar
+    : ORDENAR POR? ID ordenDireccion?
     ;
 
 ordenDireccion
-    : ORDEN_ASCENDENTE
-    | ORDEN_DESCENDENTE
+    : ASCENDENTE
+    | DESCENDENTE
     ;
 
 operacionEliminarClones
@@ -102,23 +107,24 @@ operacionSanarVacios
 
 opcionSanado
     : DESCARTAR
-    | SUSTITUIR_CON literal
+    | CON literal
     ;
 
 operacionAgrupar
-    : AGRUPAR_SECTOR LBRACK listaIdentificadores RBRACK
+    : AGRUPAR POR? listaIdentificadoresOpcional
     ;
 
-operacionSintetizar
-    : SINTETIZAR_INDICADORES LBRACK listaAsignacionesAgregacion RBRACK
+operacionResumir
+    : RESUMIR listaAsignacionesAgregacion
     ;
 
 listaAsignacionesAgregacion
-    : asignacionAgregacion (COMMA asignacionAgregacion)*
+    : LBRACK asignacionAgregacion (COMMA asignacionAgregacion)* RBRACK
+    | asignacionAgregacion (COMMA asignacionAgregacion)*
     ;
 
 asignacionAgregacion
-    : ID OP_FORJAR llamadaAgregacion
+    : ID OP_ASIG llamadaAgregacion
     ;
 
 llamadaAgregacion
@@ -131,16 +137,16 @@ llamadaAgregacion
     | FUNC_DESVIACION LPAREN ID RPAREN
     ;
 
-// -- Persistencia de datos --
+// -- Persistencia de datos en disco --
 sentenciaArchivado
     : ARCHIVAR_HOLOCRON ID EN CADENA (DELIMITADO_POR CADENA)?
     ;
 
-// -- Proyeccion holografica (Visualizaciones) --
+// -- Proyeccion holografica (Graficos) --
 sentenciaHolograma
-    : PROYECTAR_HOLOGRAMA tipoGrafica DESDE ID
+    : HOLOGRAMA tipoGrafica ID
         propiedadHolograma*
-      FIN_HOLOGRAMA
+      FIN_HOLOGRAMA?
     ;
 
 tipoGrafica
@@ -152,15 +158,15 @@ tipoGrafica
     ;
 
 propiedadHolograma
-    : EJE_X OP_FORJAR CADENA
-    | EJE_Y OP_FORJAR CADENA
-    | HOLOTITULO OP_FORJAR CADENA
-    | GUARDAR_PROYECCION OP_FORJAR CADENA
+    : EJE_X CADENA
+    | EJE_Y CADENA
+    | TITULO CADENA
+    | GUARDAR CADENA
     ;
 
-// -- Condicional galactico --
+// -- Condicional de la Fuerza --
 sentenciaCondicional
-    : EVALUAR_FUERZA LPAREN expresionBooleana RPAREN
+    : EVALUAR_FUERZA expresionBooleana
       SENDA_LUMINOSA
         sentencia*
       (SENDA_OSCURA
@@ -168,27 +174,27 @@ sentenciaCondicional
       FIN_EVALUAR
     ;
 
-// -- Transmision de mensajes por consola --
+// -- Mostrar mensajes o telemetria en consola --
 sentenciaTransmision
-    : TRANSMITIR_MENSAJE expresionPipeline
+    : (TRANSMITIR | MOSTRAR) expresionPipeline
     ;
 
 // -- Expresiones booleanas y logicas --
 expresionBooleana
-    : expresionBooleana O_FUERZA terminoBooleano     # ExprBoolOr
-    | terminoBooleano                                 # ExprBoolTermino
+    : expresionBooleana (O_LOGICO | O_FUERZA) terminoBooleano     # ExprBoolOr
+    | terminoBooleano                                             # ExprBoolTermino
     ;
 
 terminoBooleano
-    : terminoBooleano Y_FUERZA factorBooleano        # ExprBoolAnd
-    | factorBooleano                                  # ExprBoolFactor
+    : terminoBooleano (Y_LOGICO | Y_FUERZA) factorBooleano        # ExprBoolAnd
+    | factorBooleano                                              # ExprBoolFactor
     ;
 
 factorBooleano
-    : NO_FUERZA factorBooleano                        # ExprBoolNot
-    | comparacionRelacional                           # ExprBoolComparacion
-    | LPAREN expresionBooleana RPAREN                 # ExprBoolParentesis
-    | BOOL                                            # ExprBoolLiteral
+    : (NO_LOGICO | NO_FUERZA) factorBooleano                      # ExprBoolNot
+    | comparacionRelacional                                       # ExprBoolComparacion
+    | LPAREN expresionBooleana RPAREN                             # ExprBoolParentesis
+    | BOOL                                                        # ExprBoolLiteral
     ;
 
 comparacionRelacional
@@ -239,77 +245,79 @@ literal
 
 
 // -----------------------------------------------------------------------------
-// REGLAS DEL LEXER (Tokens y Terminales)
+// REGLAS DEL LEXER (Tokens y Terminales Simplificados)
 // -----------------------------------------------------------------------------
 
-// -- Palabras reservadas: Flujo y funciones --
+// -- Palabras reservadas: Modulos y funciones --
 MISION                  : 'mision';
-CON_PARAMETROS          : 'con_parametros';
-RETORNAR_ORDEN          : 'retornar_orden';
+RETORNAR                : 'retornar' | 'retornar_orden';
 FIN_MISION              : 'fin_mision';
 
 // -- Palabras reservadas: Ingestion y persistencia --
-ABRIR_HOLOCRON          : 'abrir_holocron';
-DELIMITADO_POR          : 'delimitado_por';
-ARCHIVAR_HOLOCRON       : 'archivar_holocron';
+ABRIR_HOLOCRON          : 'abrir_holocron' | 'cargar_holocron';
+DELIMITADO_POR          : 'delimitado_por' | 'separador';
+ARCHIVAR_HOLOCRON       : 'archivar_holocron' | 'guardar_holocron';
 EN                      : 'en';
-CANALIZAR               : 'canalizar';
 
 // -- Palabras reservadas: Transformacion de datos --
-REVELAR_SECTORES        : 'revelar_sectores';
-PURGAR_DONDE            : 'purgar_donde';
-FORJAR_CRISTAL          : 'forjar_cristal';
-ALINEAR_FLOTA           : 'alinear_flota';
-ORDEN_ASCENDENTE        : 'orden_ascendente';
-ORDEN_DESCENDENTE       : 'orden_descendente';
+REVELAR                 : 'revelar' | 'revelar_sectores' | 'seleccionar';
+PURGAR                  : 'purgar' | 'purgar_donde' | 'filtrar';
+DONDE                   : 'donde';
+FORJAR                  : 'forjar' | 'forjar_cristal' | 'crear';
+ORDENAR                 : 'ordenar' | 'alinear_flota';
+POR                     : 'por';
+ASCENDENTE              : 'ascendente' | 'orden_ascendente';
+DESCENDENTE             : 'descendente' | 'orden_descendente';
 ELIMINAR_CLONES         : 'eliminar_clones';
 SANAR_VACIOS            : 'sanar_vacios';
 DESCARTAR               : 'descartar';
-SUSTITUIR_CON           : 'sustituir_con';
-AGRUPAR_SECTOR          : 'agrupar_sector';
-SINTETIZAR_INDICADORES  : 'sintetizar_indicadores';
+CON                     : 'con' | 'sustituir_con';
+AGRUPAR                 : 'agrupar' | 'agrupar_sector';
+RESUMIR                 : 'resumir' | 'sintetizar' | 'sintetizar_indicadores';
 
-// -- Funciones de agregacion descriptiva --
-FUNC_RECUENTO           : 'recuento';
-FUNC_ACUMULAR           : 'acumular';
-FUNC_EQUILIBRIO         : 'equilibrio';
+// -- Funciones de agregacion estadistica --
+FUNC_RECUENTO           : 'recuento' | 'conteo';
+FUNC_ACUMULAR           : 'acumular' | 'suma';
+FUNC_EQUILIBRIO         : 'equilibrio' | 'promedio' | 'media';
 FUNC_MEDIANA            : 'mediana';
-FUNC_CENIT              : 'cenit';
-FUNC_NADIR              : 'nadir';
-FUNC_DESVIACION        : 'desviacion';
+FUNC_CENIT              : 'cenit' | 'maximo';
+FUNC_NADIR              : 'nadir' | 'minimo';
+FUNC_DESVIACION         : 'desviacion';
 
-// -- Palabras reservadas: Proyeccion holografica --
-PROYECTAR_HOLOGRAMA     : 'proyectar_holograma';
-DESDE                   : 'desde';
+// -- Palabras reservadas: Visualizaciones --
+HOLOGRAMA               : 'holograma' | 'proyectar_holograma';
 FIN_HOLOGRAMA           : 'fin_holograma';
 TIPO_BARRAS             : 'barras';
 TIPO_LINEAS             : 'lineas';
 TIPO_DISPERSION         : 'dispersion';
 TIPO_HISTOGRAMA         : 'histograma';
-TIPO_CAJA               : 'caja';
+TIPO_CAJA               : 'caja' | 'cajas';
 EJE_X                   : 'eje_x';
 EJE_Y                   : 'eje_y';
-HOLOTITULO              : 'holotitulo';
-GUARDAR_PROYECCION      : 'guardar_proyeccion';
+TITULO                  : 'titulo' | 'holotitulo';
+GUARDAR                 : 'guardar' | 'guardar_proyeccion';
 
-// -- Palabras reservadas: Control y transmision --
+// -- Control de flujo y transmision --
 EVALUAR_FUERZA          : 'evaluar_fuerza';
 SENDA_LUMINOSA          : 'senda_luminosa';
 SENDA_OSCURA            : 'senda_oscura';
 FIN_EVALUAR             : 'fin_evaluar';
-TRANSMITIR_MENSAJE      : 'transmitir_mensaje';
+TRANSMITIR              : 'transmitir' | 'transmitir_mensaje';
+MOSTRAR                 : 'mostrar';
 
-// -- Conectores logicos de la Fuerza --
+// -- Conectores logicos simples y galacticos --
+Y_LOGICO                : 'y';
 Y_FUERZA                : 'y_fuerza';
+O_LOGICO                : 'o';
 O_FUERZA                : 'o_fuerza';
+NO_LOGICO               : 'no';
 NO_FUERZA               : 'no_fuerza';
 
-// -- Operador de pipeline --
-FLECHA_PIPELINE         : '==>';
+// -- Conector de pipeline intuitivo: '|>' o '>>' --
+PIPE                    : '|>' | '>>';
 
-// -- Operadores de asignacion --
-ASIGNAR                 : '<-';
-OP_FORJAR               : ':=';
+// -- Operador de asignacion estandar --
+OP_ASIG                 : '=';
 
 // -- Operadores relacionales --
 OP_IGUAL                : '==';
@@ -327,7 +335,7 @@ OP_DIV                  : '/';
 OP_MOD                  : '%';
 OP_POTENCIA             : '^';
 
-// -- Delimitadores y signos de puntuacion --
+// -- Delimitadores --
 LPAREN                  : '(';
 RPAREN                  : ')';
 LBRACK                  : '[';
@@ -335,23 +343,20 @@ RBRACK                  : ']';
 COMMA                   : ',';
 
 // -- Literales booleanos --
-BOOL                    : 'cierto_es' | 'falso_es';
+BOOL                    : 'cierto_es' | 'falso_es' | 'verdadero' | 'falso';
 
-// -- Literales numericos: decimales y enteros --
+// -- Literales numericos --
 NUMERO                  : [0-9]+ ('.' [0-9]+)?;
 
-// -- Literales de texto (cadenas entre comillas dobles) --
+// -- Literales de cadena --
 CADENA                  : '"' (~["\r\n])* '"';
 
-// -- Identificadores galacticos --
+// -- Identificadores --
 ID                      : [a-zA-Z_][a-zA-Z0-9_]*;
 
-// -- Comentarios galacticos --
-// Comentario de una sola linea con doble guion
+// -- Comentarios --
 COMENTARIO_LINEA        : '--' ~[\r\n]* -> skip;
-
-// Comentario de bloque
 COMENTARIO_BLOQUE       : '/-' .*? '-/' -> skip;
 
-// -- Espacios en blanco ignorados --
+// -- Espacios en blanco --
 WS                      : [ \t\r\n]+ -> skip;
