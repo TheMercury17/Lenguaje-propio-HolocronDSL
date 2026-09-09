@@ -33,6 +33,8 @@ Esta arquitectura garantiza una originalidad absoluta frente a otros lenguajes c
 
 ```text
 Lenguaje propio/
+├── Makefile                        # Automatizacion de tareas y pruebas
+├── run_tests.py                    # Gestor multiplataforma de pruebas unitarias
 ├── .gitignore                      # Exclusion de archivos temporales y caches
 ├── README.md                       # Documentacion principal del proyecto
 ├── requirements.txt                # Dependencias oficiales de Python
@@ -87,10 +89,52 @@ Para regenerar los analizadores lexicos y sintacticos a partir del archivo `.g4`
 ```bash
 antlr4 -Dlanguage=Python3 -visitor -o src/generated grammar/HolocronDSL.g4
 ```
+*(Tambien disponible con `make grammar` o `python run_tests.py --grammar`).*
 
 ---
 
-## 4. Guia de Ejecucion del Front-end
+## 4. Automatizacion de Pruebas (Makefile y Gestor Multiplataforma)
+
+El proyecto ofrece tres formas equivalentes y comodas para ejecutar las pruebas, adaptandose a cualquier sistema operativo:
+
+### Opcion A: Usando el `Makefile` (Recomendado para entornos Linux, macOS o WSL)
+```bash
+make help            # Despliega la lista de comandos disponibles
+make test            # Ejecuta la suite completa de pruebas unitarias
+make test-lexer      # Ejecuta solo las pruebas del analizador lexico
+make test-parser     # Ejecuta solo las pruebas sintacticas validas
+make test-invalid    # Ejecuta solo las pruebas sintacticas negativas
+make check-examples  # Valida todos los ejemplos .holo de examples/
+make clean           # Limpia los caches de Python
+```
+
+### Opcion B: Usando el Gestor Python `run_tests.py` (Recomendado para Windows)
+No requiere tener `make` instalado en el sistema:
+```bash
+python run_tests.py              # Ejecuta toda la suite de pruebas unitarias
+python run_tests.py --all        # Ejecuta pruebas y valida todos los ejemplos
+python run_tests.py --lexer      # Ejecuta solo pruebas lexicas
+python run_tests.py --parser     # Ejecuta solo pruebas sintacticas validas
+python run_tests.py --invalid    # Ejecuta solo pruebas sintacticas de error
+python run_tests.py --examples   # Valida sintaxis de los archivos de ejemplo
+python run_tests.py --grammar    # Recompila la gramatica con ANTLR4
+```
+
+### Opcion C: Ejecucion Manual por Separado con Python puro
+Si prefieres ejecutar cada prueba directamente con el modulo `unittest` de Python:
+```bash
+# Ejecutar suite completa
+python -m unittest discover -s tests
+
+# Ejecutar pruebas por separado
+python -m unittest tests/test_lexer.py
+python -m unittest tests/test_parser_valid.py
+python -m unittest tests/test_parser_invalid.py
+```
+
+---
+
+## 5. Guia de Ejecucion del Front-end
 
 El sistema incluye una herramienta de linea de comandos (`src/cli.py`) que permite escanear archivos `.holo`, validar su sintaxis y generar representaciones visuales del arbol de analisis (CST).
 
@@ -116,24 +160,6 @@ python src/cli.py --codigo "cazas = abrir_holocron \"flota.csv\" |> purgar donde
 
 ---
 
-## 5. Ejecucion de la Suite de Pruebas
-
-El proyecto cuenta con 20 pruebas automatizadas que cubren el analisis lexico, las estructuras sintacticas validas y la captura diagnostica de errores.
-
-Para ejecutar la suite completa:
-```bash
-python -m unittest discover -s tests
-```
-
-Para ejecutar modulos individuales de prueba:
-```bash
-python -m unittest tests/test_lexer.py
-python -m unittest tests/test_parser_valid.py
-python -m unittest tests/test_parser_invalid.py
-```
-
----
-
 ## 6. Estado de Avance por Fases (Cortes)
 
 - **Fase 1: Especificacion y Front-end del Lenguaje (Completada):**
@@ -143,6 +169,7 @@ python -m unittest tests/test_parser_invalid.py
   - Manejador de errores de sintaxis personalizado con reporte preciso de linea y columna.
   - Interfaz CLI funcional para inspeccion del arbol sintactico.
   - Manual de programacion para principiantes en `docs/manual_programacion.md`.
+  - Makefile y gestor de pruebas `run_tests.py` para ejecucion general o individual.
   - 5 ejemplos galacticos documentados y suite de pruebas unitarias al 100% de aprobacion.
 
 - **Fase 2: Semantica y Procesamiento de Datos (Proxima entrega):**
