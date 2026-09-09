@@ -209,15 +209,73 @@ fin_evaluar
 
 ---
 
-## Capitulo 8: Ejecucion en Consola
+## Capitulo 8: Guia Paso a Paso para Ejecutar en la Terminal
 
-```bash
--- Validar si el archivo esta bien escrito:
-python src/cli.py mi_programa.holo --check
+### 8.1 ¿En que carpeta debo estar ubicado?
+Para que los comandos funcionen, tu consola o terminal debe estar parada dentro de la carpeta raiz del proyecto:
+`C:\Users\Sebas\OneDrive\Documents\Sergio Arboleda\Trabajos\Lenguajes de prog\Lenguaje propio`
 
--- Ver la estructura del arbol sintactico:
-python src/cli.py mi_programa.holo --tree
+**Como abrir la consola directamente en esa carpeta:**
+1. Abre el Explorador de Archivos de Windows y navega hasta esa carpeta.
+2. Haz clic en la barra de direcciones superior (donde aparece la ruta).
+3. Escribe `powershell` y presiona la tecla `Enter`.
+4. Listo: se abrira una ventana de consola azul posicionada exactamente en el proyecto.
 
--- Ejecutar la suite completa de pruebas:
-python -m unittest discover -s tests
+Si ya tienes una consola abierta y quieres navegar hasta la carpeta, escribe:
+```powershell
+cd "C:\Users\Sebas\OneDrive\Documents\Sergio Arboleda\Trabajos\Lenguajes de prog\Lenguaje propio"
 ```
+
+### 8.2 ¿Que comandos debo ejecutar primero (Preparacion)?
+Antes de probar cualquier archivo, asegurate de tener instaladas las librerias necesarias. Solo se hace una vez:
+```powershell
+pip install -r requirements.txt
+```
+
+Y para asegurarte de que los analizadores de ANTLR4 esten generados:
+```powershell
+python run_tests.py --grammar
+```
+
+### 8.3 ¿Como se ejecutan los archivos de ejemplo (.holo)?
+Los archivos `.holo` contienen programas en HolocronDSL. Para ejecutarlos y que la computadora los analice, usamos el script `src/cli.py`:
+
+1. **Para verificar si un archivo esta bien escrito (sin errores sintacticos):**
+   ```powershell
+   python src/cli.py examples/01_telemetria_cazas.holo --check
+   ```
+   *Respuesta esperada:* `Sintaxis verificada con exito: la Fuerza fluye en perfecta armonia.`
+
+2. **Para ver el arbol sintactico (CST jerarquico visual):**
+   ```powershell
+   python src/cli.py examples/01_telemetria_cazas.holo --tree
+   ```
+
+3. **Para probar una linea de codigo directamente sin crear un archivo:**
+   ```powershell
+   python src/cli.py --codigo "flota = abrir_holocron \"flota.csv\" |> purgar donde escudos > 50" --tree
+   ```
+
+### 8.4 ¿Como se ejecutan las pruebas unitarias?
+Puedes correr todas las pruebas juntas o por separado usando el script `run_tests.py`:
+
+* **Todas las pruebas:**
+  ```powershell
+  python run_tests.py
+  ```
+* **Solo pruebas del analizador lexico (tokens y palabras reservadas):**
+  ```powershell
+  python run_tests.py --lexer
+  ```
+* **Solo pruebas de sintaxis correcta (pipelines, graficas, misiones):**
+  ```powershell
+  python run_tests.py --parser
+  ```
+* **Solo pruebas de deteccion de errores (para verificar que rechace codigo mal escrito):**
+  ```powershell
+  python run_tests.py --invalid
+  ```
+* **Verificar todos los ejemplos de la carpeta examples/:**
+  ```powershell
+  python run_tests.py --examples
+  ```

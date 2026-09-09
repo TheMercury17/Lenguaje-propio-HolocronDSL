@@ -29,7 +29,131 @@ Esta arquitectura garantiza una originalidad absoluta frente a otros lenguajes c
 
 ---
 
-## 2. Estructura del Repositorio
+## 2. Guia Paso a Paso: Desde Cero hasta la Ejecucion
+
+Si nunca has ejecutado un proyecto por consola o no sabes por donde empezar, sigue estos pasos exactos:
+
+### Paso 0: Como abrir la terminal y ubicarse en la carpeta correcta
+Para que cualquier comando funcione, tu consola (PowerShell o CMD) debe estar ubicada en la carpeta raiz del proyecto.
+
+**Opcion A (La mas facil en Windows):**
+1. Abre el Explorador de Archivos de Windows y entra a la carpeta del proyecto:
+   `C:\Users\Sebas\OneDrive\Documents\Sergio Arboleda\Trabajos\Lenguajes de prog\Lenguaje propio`
+2. Haz clic en la barra de direcciones superior (donde se ve la ruta de las carpetas).
+3. Escribe `powershell` y presiona la tecla `Enter`.
+4. Se abrira una ventana azul ya ubicada exactamente en el proyecto.
+
+**Opcion B (Usando el comando `cd` en cualquier terminal):**
+Si ya tienes una consola abierta, escribe este comando (con las comillas) y presiona `Enter`:
+```powershell
+cd "C:\Users\Sebas\OneDrive\Documents\Sergio Arboleda\Trabajos\Lenguajes de prog\Lenguaje propio"
+```
+
+Para verificar que estas en el lugar correcto, escribe:
+```powershell
+dir
+```
+Debes ver archivos como `README.md`, `run_tests.py`, `Makefile` y carpetas como `src`, `docs` y `examples`.
+
+---
+
+### Paso 1: Que comandos escribir antes de ejecutar las cosas (Preparacion inicial)
+Solo debes hacer esto la primera vez que configuras el proyecto:
+
+1. **Verificar que Python este instalado:**
+   ```powershell
+   python --version
+   ```
+   *(Debe responder Python 3.11 o superior, por ejemplo Python 3.14)*.
+
+2. **Instalar las dependencias oficiales del proyecto:**
+   ```powershell
+   pip install -r requirements.txt
+   ```
+   *(Esto instalara antlr4-python3-runtime, pandas, numpy y matplotlib)*.
+
+3. **Compilar la gramatica ANTLR4 (Generar los analizadores en Python):**
+   ```powershell
+   python run_tests.py --grammar
+   ```
+   *(O alternativamente: `antlr4 -Dlanguage=Python3 -visitor -o src/generated grammar/HolocronDSL.g4`)*.
+
+---
+
+### Paso 2: Como ejecutar los ejemplos de HolocronDSL
+Los archivos con extension `.holo` (como `examples/01_telemetria_cazas.holo`) contienen codigo escrito en nuestro lenguaje. 
+
+Para ejecutarlos y analizarlos, usamos el script controlador `src/cli.py`:
+
+1. **Validar si un programa esta bien escrito (sin errores sintacticos):**
+   ```powershell
+   python src/cli.py examples/01_telemetria_cazas.holo --check
+   ```
+   *Respuesta esperada:*
+   `Sintaxis verificada con exito: la Fuerza fluye en perfecta armonia.`
+
+2. **Ver como la computadora entiende la estructura de tu codigo (Arbol Sintactico):**
+   ```powershell
+   python src/cli.py examples/01_telemetria_cazas.holo --tree
+   ```
+   *Respuesta esperada:* Un diagrama visual que muestra cada sentencia, operacion y token reconocido en el programa.
+
+3. **Ver la notacion jerarquica LISP (parentizada):**
+   ```powershell
+   python src/cli.py examples/01_telemetria_cazas.holo --lisp
+   ```
+
+4. **Probar una linea de codigo directamente en la terminal:**
+   ```powershell
+   python src/cli.py --codigo "cazas = abrir_holocron \"flota.csv\" |> purgar donde escudos > 50" --tree
+   ```
+
+---
+
+### Paso 3: Como ejecutar las pruebas (juntas o por separado)
+El proyecto incluye un script gestor (`run_tests.py`) que te permite correr pruebas facilmente:
+
+#### Para ejecutar todas las pruebas a la vez:
+```powershell
+python run_tests.py
+```
+*(O si deseas que ademas valide todos los archivos `.holo` de la carpeta examples: `python run_tests.py --all`)*.
+
+#### Para ejecutar las pruebas por separado:
+* **Solo el analizador lexico (palabras reservadas, numeros, operadores):**
+  ```powershell
+  python run_tests.py --lexer
+  ```
+* **Solo la sintaxis de programas validos (pipelines, agregaciones, hologramas):**
+  ```powershell
+  python run_tests.py --parser
+  ```
+* **Solo las pruebas de captura y reporte de errores sintacticos:**
+  ```powershell
+  python run_tests.py --invalid
+  ```
+* **Verificar todos los archivos de ejemplo en `examples/`:**
+  ```powershell
+  python run_tests.py --examples
+  ```
+
+---
+
+### Paso 4: (Opcional) Usando el `Makefile`
+Si estas en Linux, macOS, WSL o tienes la herramienta `make` instalada:
+```bash
+make help            # Lista todos los comandos disponibles
+make test            # Ejecuta todas las pruebas
+make test-lexer      # Solo pruebas lexicas
+make test-parser     # Solo pruebas sintacticas validas
+make test-invalid    # Solo pruebas de errores
+make check-examples  # Valida los 5 ejemplos .holo
+make clean           # Limpia archivos de cache
+```
+
+---
+
+## 3. Estructura del Repositorio
 
 ```text
 Lenguaje propio/
@@ -72,95 +196,7 @@ Lenguaje propio/
 
 ---
 
-## 3. Requisitos y Configuracion del Entorno
-
-### Requisitos Previos
-- Python 3.11 o superior (probado en Python 3.14).
-- `antlr4-tools` y `antlr4-python3-runtime` (version 4.13.2).
-- Bibliotecas para analisis de datos: `pandas`, `numpy` y `matplotlib`.
-
-### Instalacion de Dependencias
-```bash
-pip install -r requirements.txt
-```
-
-### Compilacion de la Gramatica (Generacion de Codigo)
-Para regenerar los analizadores lexicos y sintacticos a partir del archivo `.g4`, ejecute:
-```bash
-antlr4 -Dlanguage=Python3 -visitor -o src/generated grammar/HolocronDSL.g4
-```
-*(Tambien disponible con `make grammar` o `python run_tests.py --grammar`).*
-
----
-
-## 4. Automatizacion de Pruebas (Makefile y Gestor Multiplataforma)
-
-El proyecto ofrece tres formas equivalentes y comodas para ejecutar las pruebas, adaptandose a cualquier sistema operativo:
-
-### Opcion A: Usando el `Makefile` (Recomendado para entornos Linux, macOS o WSL)
-```bash
-make help            # Despliega la lista de comandos disponibles
-make test            # Ejecuta la suite completa de pruebas unitarias
-make test-lexer      # Ejecuta solo las pruebas del analizador lexico
-make test-parser     # Ejecuta solo las pruebas sintacticas validas
-make test-invalid    # Ejecuta solo las pruebas sintacticas negativas
-make check-examples  # Valida todos los ejemplos .holo de examples/
-make clean           # Limpia los caches de Python
-```
-
-### Opcion B: Usando el Gestor Python `run_tests.py` (Recomendado para Windows)
-No requiere tener `make` instalado en el sistema:
-```bash
-python run_tests.py              # Ejecuta toda la suite de pruebas unitarias
-python run_tests.py --all        # Ejecuta pruebas y valida todos los ejemplos
-python run_tests.py --lexer      # Ejecuta solo pruebas lexicas
-python run_tests.py --parser     # Ejecuta solo pruebas sintacticas validas
-python run_tests.py --invalid    # Ejecuta solo pruebas sintacticas de error
-python run_tests.py --examples   # Valida sintaxis de los archivos de ejemplo
-python run_tests.py --grammar    # Recompila la gramatica con ANTLR4
-```
-
-### Opcion C: Ejecucion Manual por Separado con Python puro
-Si prefieres ejecutar cada prueba directamente con el modulo `unittest` de Python:
-```bash
-# Ejecutar suite completa
-python -m unittest discover -s tests
-
-# Ejecutar pruebas por separado
-python -m unittest tests/test_lexer.py
-python -m unittest tests/test_parser_valid.py
-python -m unittest tests/test_parser_invalid.py
-```
-
----
-
-## 5. Guia de Ejecucion del Front-end
-
-El sistema incluye una herramienta de linea de comandos (`src/cli.py`) que permite escanear archivos `.holo`, validar su sintaxis y generar representaciones visuales del arbol de analisis (CST).
-
-### Validacion Rapida de Sintaxis
-```bash
-python src/cli.py examples/01_telemetria_cazas.holo --check
-```
-
-### Visualizacion Jerarquica del Arbol Sintactico
-```bash
-python src/cli.py examples/01_telemetria_cazas.holo --tree
-```
-
-### Visualizacion en Notacion Parentizada (LISP)
-```bash
-python src/cli.py examples/01_telemetria_cazas.holo --lisp
-```
-
-### Analisis de Codigo en Linea
-```bash
-python src/cli.py --codigo "cazas = abrir_holocron \"flota.csv\" |> purgar donde escudos > 50" --tree
-```
-
----
-
-## 6. Estado de Avance por Fases (Cortes)
+## 4. Estado de Avance por Fases (Cortes)
 
 - **Fase 1: Especificacion y Front-end del Lenguaje (Completada):**
   - Delimitacion del dominio, documento de alcance y catalogo de instrucciones.
