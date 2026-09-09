@@ -1,0 +1,40 @@
+-- ==========================================================
+-- PROYECTO TACTICO: REPORTE DE LA FLOTA ESTELAR
+-- Ejemplo integral que complementa el Manual de Programacion
+-- ==========================================================
+
+-- 1. Ingestion de datos
+telemetria <- abrir_holocron "examples/datos/telemetria_flota.csv"
+
+-- 2. Limpieza y filtrado
+escuadron_activo <- telemetria
+    ==> eliminar_clones
+    ==> sanar_vacios sustituir_con 0
+    ==> revelar_sectores [ identificador, modelo, faccion, escudos, victorias ]
+    ==> purgar_donde escudos > 30 y_fuerza victorias > 0
+    ==> forjar_cristal indice_ataque := victorias * 10
+    ==> alinear_flota indice_ataque orden_descendente
+
+-- 3. Resumen estadistico por faccion
+resumen_estrategico <- escuadron_activo
+    ==> agrupar_sector [ faccion ]
+    ==> sintetizar_indicadores [
+        naves_listas := recuento(),
+        promedio_defensivo := equilibrio(escudos),
+        mayor_victorias := cenit(victorias)
+    ]
+
+-- 4. Guardado de los reportes en CSV
+archivar_holocron escuadron_activo en "salidas/escuadron_activo.csv"
+archivar_holocron resumen_estrategico en "salidas/resumen_estrategico.csv"
+
+-- 5. Proyeccion del holograma comparativo
+proyectar_holograma barras desde resumen_estrategico
+    eje_x := "faccion"
+    eje_y := "naves_listas"
+    holotitulo := "Distribucion de naves operativas por faccion"
+    guardar_proyeccion := "salidas/naves_operativas.png"
+fin_holograma
+
+-- 6. Notificacion final
+transmitir_mensaje "Analisis tactico completado y archivado satisfactoriamente."
