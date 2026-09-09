@@ -1,0 +1,20 @@
+# Entorno de ejecucion y caches de Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Salidas de generacion transitoria
+salidas/
+*.png
+*.pdf
+
+# Archivos de entorno y configuracion local
+.env
+.venv
+env/
+venv/
+.idea/
+.vscode/

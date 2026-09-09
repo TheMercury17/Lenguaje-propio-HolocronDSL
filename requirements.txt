@@ -1,0 +1,7 @@
+# Dependencias del proyecto HolocronDSL
+# Lenguajes de Programacion y Transduccion - Semestre 2026-2
+
+antlr4-python3-runtime==4.13.2
+pandas>=2.2.0
+numpy>=1.26.0
+matplotlib>=3.8.0

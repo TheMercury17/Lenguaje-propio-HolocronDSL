@@ -1,0 +1,18 @@
+-- Ejemplo 01: Telemetria y filtrado basico de la flota estelar
+-- Demuestra carga de holocron, seleccion de sectores, purga y archivado
+
+-- Cargar registros historicos de telemetria
+flota_completa <- abrir_holocron "examples/datos/telemetria_flota.csv"
+
+-- Limpiar registros: seleccionar atributos, purgar naves sin escudos y ordenar
+flota_operativa <- flota_completa
+    ==> revelar_sectores [ identificador, modelo, faccion, escudos, victorias ]
+    ==> purgar_donde escudos > 50 y_fuerza victorias >= 5
+    ==> forjar_cristal indice_efectividad := victorias * 10 + escudos / 2
+    ==> alinear_flota indice_efectividad orden_descendente
+
+-- Guardar los resultados en el archivo de salida
+archivar_holocron flota_operativa en "salidas/flota_operativa.csv"
+
+-- Notificar a la tripulacion
+transmitir_mensaje "Telemetria procesada exitosamente en los sistemas de navegacion."

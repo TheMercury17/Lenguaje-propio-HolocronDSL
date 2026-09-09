@@ -1,0 +1,22 @@
+-- Ejemplo 02: Resumen estadistico y agrupamiento de sectores galacticos
+-- Demuestra eliminacion de duplicados, saneamiento de vacios y funciones de agregacion
+
+-- Cargar telemetria con delimitador explicito
+flota_bruta <- abrir_holocron "examples/datos/telemetria_flota.csv" delimitado_por ","
+
+-- Depurar y consolidar indicadores por faccion
+resumen_facciones <- flota_bruta
+    ==> eliminar_clones
+    ==> sanar_vacios sustituir_con 0
+    ==> agrupar_sector [ faccion ]
+    ==> sintetizar_indicadores [
+        censo_naves := recuento(),
+        fuerza_defensiva := acumular(escudos),
+        promedio_escudos := equilibrio(escudos),
+        maximas_victorias := cenit(victorias),
+        dispersion_combate := desviacion(victorias)
+    ]
+    ==> alinear_flota censo_naves orden_descendente
+
+-- Persistir el resumen en disco
+archivar_holocron resumen_facciones en "salidas/resumen_facciones.csv" delimitado_por ","
