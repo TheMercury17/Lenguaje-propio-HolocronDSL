@@ -18,11 +18,11 @@ HolocronDSL es un lenguaje de dominio especifico (DSL) declarativo y funcional d
 
 El lenguaje adopta una identidad conceptual y estetica basada en el universo de **Star Wars**:
 - Las fuentes de datos son tratadas como **holocrones**.
-- El flujo de transformacion se modela mediante un operador de pipeline hiperespacial (`==>`).
-- Las variables se vinculan con el operador de canalizacion (`<-`).
-- La depuracion de registros utiliza primitivas declarativas como `purgar_donde`, `eliminar_clones` y `sanar_vacios`.
-- La generacion de nuevas variables se realiza mediante la clausula `forjar_cristal`.
-- Las visualizaciones graficas se declaran como **proyecciones holograficas** (`proyectar_holograma`).
+- El flujo de transformacion se modela mediante un conector de pipeline hiperespacial limpio (`|>`).
+- Las variables se vinculan con el operador estandar de asignacion (`=`).
+- La depuracion de registros utiliza primitivas declarativas como `purgar donde`, `eliminar_clones` y `sanar_vacios con`.
+- La generacion de nuevas variables se realiza mediante la clausula `forjar variable = expresion`.
+- Las visualizaciones graficas se declaran mediante bloques de **hologramas** (`holograma tipo datos`).
 - El lenguaje cuenta con abstraccion funcional (`mision`) y bifurcaciones condicionales (`evaluar_fuerza` con `senda_luminosa` y `senda_oscura`).
 
 Esta arquitectura garantiza una originalidad absoluta frente a otros lenguajes convencionales (evitando patrones directos de C++, Java o Python) y proporciona una separacion estricta entre la sintaxis formal (definida en ANTLR4) y la ejecucion semantica en Python.
@@ -41,7 +41,8 @@ Lenguaje propio/
 ├── docs/
 │   ├── alcance.md                  # Documento de alcance y delimitacion formal
 │   ├── catalogo_instrucciones.md   # Catalogo de palabras reservadas y semantica
-│   └── gramatica_ebnf.md           # Gramatica formal en notacion EBNF
+│   ├── gramatica_ebnf.md           # Gramatica formal en notacion EBNF
+│   └── manual_programacion.md      # Manual tutorial intuitivo para principiantes
 ├── src/
 │   ├── __init__.py
 │   ├── cli.py                      # Punto de entrada por linea de comandos
@@ -58,7 +59,8 @@ Lenguaje propio/
 │   ├── 01_telemetria_cazas.holo    # Flujo basico de carga, seleccion, filtro y archivado
 │   ├── 02_censo_galactico.holo     # Agrupamiento por faccion y funciones estadisticas
 │   ├── 03_proyeccion_holografica.holo # Bloques declarativos de graficos holograficos
-│   └── 04_mision_avanzada.holo     # Abstraccion con misiones y evaluacion condicional
+│   ├── 04_mision_avanzada.holo     # Abstraccion con misiones y evaluacion condicional
+│   └── 05_proyecto_completo.holo   # Flujo tactico integral paso a paso
 └── tests/
     ├── __init__.py
     ├── test_lexer.py               # Pruebas unitarias de tokens y terminales
@@ -109,14 +111,14 @@ python src/cli.py examples/01_telemetria_cazas.holo --lisp
 
 ### Analisis de Codigo en Linea
 ```bash
-python src/cli.py --codigo "cazas <- abrir_holocron \"flota.csv\" ==> purgar_donde escudos > 50" --tree
+python src/cli.py --codigo "cazas = abrir_holocron \"flota.csv\" |> purgar donde escudos > 50" --tree
 ```
 
 ---
 
 ## 5. Ejecucion de la Suite de Pruebas
 
-El proyecto cuenta con 21 pruebas automatizadas que cubren el analisis lexico, las estructuras sintacticas validas y la captura diagnostica de errores.
+El proyecto cuenta con 20 pruebas automatizadas que cubren el analisis lexico, las estructuras sintacticas validas y la captura diagnostica de errores.
 
 Para ejecutar la suite completa:
 ```bash
@@ -140,7 +142,8 @@ python -m unittest tests/test_parser_invalid.py
   - Generador de Lexer y Parser en Python con ANTLR 4.13.2.
   - Manejador de errores de sintaxis personalizado con reporte preciso de linea y columna.
   - Interfaz CLI funcional para inspeccion del arbol sintactico.
-  - Ejemplos galacticos documentados y suite de pruebas unitarias al 100% de aprobacion.
+  - Manual de programacion para principiantes en `docs/manual_programacion.md`.
+  - 5 ejemplos galacticos documentados y suite de pruebas unitarias al 100% de aprobacion.
 
 - **Fase 2: Semantica y Procesamiento de Datos (Proxima entrega):**
   - Implementacion del patron Visitor en Python.
