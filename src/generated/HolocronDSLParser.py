@@ -160,6 +160,20 @@ def serializedATN():
         292,304,312,319,322,337,348,359,375,386,392,402,409
     ]
 
+# Compatibilidad retroactiva con antlr4 runtime < 4.11 (p. ej. en Debian / Kali Linux)
+try:
+    if hasattr(ATNDeserializer, "reset"):
+        _orig_atn_reset = ATNDeserializer.reset
+        def _compat_atn_reset(self, data):
+            if data and isinstance(data[0], int):
+                self.data = list(data)
+                self.pos = 0
+            else:
+                _orig_atn_reset(self, data)
+        ATNDeserializer.reset = _compat_atn_reset
+except Exception:
+    pass
+
 class HolocronDSLParser ( Parser ):
 
     grammarFileName = "HolocronDSL.g4"
