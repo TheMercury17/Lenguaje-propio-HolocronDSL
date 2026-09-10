@@ -154,7 +154,60 @@ make clean           # Limpia archivos de cache
 
 ---
 
-## 3. Estructura del Repositorio
+## 3. Anatomia del Codigo y Diccionario de Palabras Reservadas
+
+Para garantizar que cualquier persona comprenda de inmediato el codigo de HolocronDSL, cada elemento de un script `.holo` pertenece a una de **5 categorias bien delimitadas**:
+
+### 3.1. Las 5 Categorias de Elementos
+1. **Palabras Reservadas:** Ordenes e instrucciones fijas predefinidas en el compilador (`abrir_holocron`, `purgar donde`, `forjar`, `holograma`, etc.). No pueden usarse como variables.
+2. **Nombres de Variables:** Identificadores libres creados por el usuario para guardar tablas o resultados en memoria (`telemetria`, `escuadron_activo`). Se escriben sin comillas.
+3. **Nombres de Columnas:** Encabezados que vienen definidos en el archivo CSV (`modelo`, `faccion`, `escudos`, `velocidad`).
+4. **Operadores y Conectores:** Simbolos que transforman o canalizan informacion: asignacion (`=`), tuberia hiperespacial (`|>`), aritmetica (`+`, `-`, `*`, `/`) y comparacion (`>`, `<`, `==`).
+5. **Literales:** Valores constantes directos: textos entre comillas (`"datos.csv"`), numeros (`100`, `3.14`) o booleanos (`cierto_es`, `falso_es`).
+
+### 3.2. Diccionario Exhaustivo de Palabras Reservadas
+
+A continuacion se presenta la totalidad del lexico reservado de HolocronDSL, clasificado por categoria con su significado en lenguaje cotidiano y ejemplo ilustrativo:
+
+| Palabra Reservada | Categoria | Significado en Lenguaje Cotidiano | Ejemplo de Uso |
+| :--- | :--- | :--- | :--- |
+| **`abrir_holocron`** | Entrada de datos | Lee un archivo CSV y lo carga como tabla en memoria. | `datos = abrir_holocron "flota.csv"` |
+| **`archivar`** | Salida de datos | Exporta y guarda una tabla procesada en un archivo CSV en disco. | `archivar mi_tabla en "salida.csv"` |
+| **`en`** | Conector | Especifica la ruta destino para la sentencia `archivar`. | `archivar datos en "reporte.csv"` |
+| **`revelar`** | Salida de consola | Imprime un texto, numero o tabla directamente en la terminal. | `revelar "Mision finalizada con exito"` |
+| **`inspeccionar`** | Exploracion | Muestra el esquema de la tabla (columnas y tipos de datos detectados). | `inspeccionar flota` |
+| **`purgar donde`** | Transformacion | Filtra filas conservando unicamente aquellas que satisfacen la condicion. | `tabla \|> purgar donde escudos > 80` |
+| **`eliminar_clones`** | Limpieza | Remueve registros repetidos o filas duplicadas de la tabla. | `tabla \|> eliminar_clones` |
+| **`sanar_vacios con`**| Limpieza | Imputa y rellena celdas vacias o valores faltantes (NaN/null). | `tabla \|> sanar_vacios con 0` |
+| **`seleccionar`** | Proyeccion | Conserva exclusivamente las columnas listadas entre corchetes. | `tabla \|> seleccionar [nave, piloto]` |
+| **`forjar`** | Calculo | Genera e inserta una columna nueva calculada mediante una expresion. | `tabla \|> forjar blindaje = escudos * 1.2` |
+| **`ordenar por`** | Ordenamiento | Reorganiza las filas segun los valores de la columna indicada. | `tabla \|> ordenar por velocidad desc` |
+| **`asc` / `desc`** | Sentido de orden | Modificador para orden ascendente (menor a mayor) o descendente. | `ordenar por bajas desc` |
+| **`agrupar por`** | Agrupacion | Particiona las filas en grupos segun una o mas columnas categoricas. | `tabla \|> agrupar por [faccion]` |
+| **`resumir`** | Agregacion | Calcula metricas agregadas (`promedio`, `suma`, `conteo`, `min`, `max`). | `resumir [media = promedio(potencia)]` |
+| **`limitar`** | Paginacion | Restringe la tabla a las primeras N filas indicadas. | `tabla \|> limitar 10` |
+| **`holograma`** | Visualizacion | Declara la construccion de una representacion grafica estatica (PNG). | `holograma barras datos x: "f", y: "v", salida: "g.png"` |
+| **`barras`** | Tipo de grafico | Grafico de barras para comparar cantidades por categoria. | `holograma barras datos ...` |
+| **`dispersion`** | Tipo de grafico | Grafico de dispersion de puntos para correlacion de variables. | `holograma dispersion datos ...` |
+| **`lineas`** | Tipo de grafico | Grafico de lineas continuas para analizar tendencias continuas o temporales. | `holograma lineas datos ...` |
+| **`histograma`** | Tipo de grafico | Grafico de distribucion de frecuencias numericas por intervalos. | `holograma histograma datos ...` |
+| **`si la_fuerza`** | Control condicional | Inicia una bifurcacion logica basada en una condicion booleana. | `si la_fuerza (nivel > 5) entonces` |
+| **`entonces`** | Conector condicional | Marca el bloque de codigo a ejecutar si la condicion es verdadera. | `si la_fuerza (condicion) entonces` |
+| **`sino`** | Rama alternativa | Marca el bloque de codigo alternativo si la condicion no se cumplio. | `sino ... fin_fuerza` |
+| **`fin_fuerza`** | Cierre de bloque | Marca la terminacion formal del bloque condicional. | `fin_fuerza` |
+| **`mision`** | Subrutina / Funcion | Define una rutina parametrizada y reutilizable con nombre propio. | `mision calcular_danio(base, factor)` |
+| **`retornar`** | Retorno de valor | Devuelve un resultado computado hacia el llamador de la mision. | `retornar base * factor` |
+| **`fin_mision`** | Cierre de funcion | Marca la conclusion de la declaracion de una mision. | `fin_mision` |
+| **`cierto_es` / `verdadero`** | Booleano | Valor booleano positivo (true). | `activo = cierto_es` |
+| **`falso_es` / `falso`** | Booleano | Valor booleano negativo (false). | `bloqueado = falso_es` |
+| **`nulo`** | Valor ausente | Representa la ausencia de valor o dato faltante (null / None). | `valor = nulo` |
+| **`y` / `y_fuerza`** | Operador logico | Conjuncion logica (ambas expresiones deben ser ciertas). | `escudos > 50 y blindaje > 20` |
+| **`o` / `o_fuerza`** | Operador logico | Disyuncion logica (al menos una de las expresiones debe ser cierta). | `faccion == "A" o faccion == "B"` |
+| **`no` / `no_fuerza`**| Operador logico | Negacion logica que invierte el valor de verdad de una expresion. | `no (activo == cierto_es)` |
+
+---
+
+## 4. Estructura del Repositorio
 
 ```text
 Lenguaje propio/
@@ -199,7 +252,7 @@ Lenguaje propio/
 
 ---
 
-## 4. Estado de Avance por Fases (Cortes)
+## 5. Estado de Avance por Fases (Cortes)
 
 - **Fase 1: Especificacion y Front-end del Lenguaje (Completada):**
   - Delimitacion del dominio, documento de alcance y catalogo de instrucciones.
