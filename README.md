@@ -83,12 +83,13 @@ Solo debes hacer esto la primera vez que configuras el proyecto:
 ### Paso 2: Como ejecutar los ejemplos de HolocronDSL
 Los archivos con extension `.holo` (como `examples/01_telemetria_cazas.holo`) contienen codigo escrito en nuestro lenguaje. 
 
-Para ejecutarlos y analizarlos, usamos el script controlador `src/cli.py`:
+Para ejecutarlos y analizarlos, puedes usar el script rapido `holocron.py` ubicado en la raiz o el script controlador `src/cli.py`:
 
 1. **Validar si un programa esta bien escrito (sin errores sintacticos):**
    ```powershell
-   python src/cli.py examples/01_telemetria_cazas.holo --check
+   python holocron.py examples/01_telemetria_cazas.holo --check
    ```
+   *(O tambien: `python src/cli.py examples/01_telemetria_cazas.holo --check`)*.
    *Respuesta esperada:*
    `Sintaxis verificada con exito: la Fuerza fluye en perfecta armonia.`
 
@@ -168,7 +169,9 @@ Lenguaje propio/
 │   ├── alcance.md                  # Documento de alcance y delimitacion formal
 │   ├── catalogo_instrucciones.md   # Catalogo de palabras reservadas y semantica
 │   ├── gramatica_ebnf.md           # Gramatica formal en notacion EBNF
-│   └── manual_programacion.md      # Manual tutorial intuitivo para principiantes
+│   ├── manual_programacion.md      # Manual tutorial intuitivo para principiantes
+│   └── piedra_rosetta.md           # Matriz exhaustiva de equivalencias y traduccion
+├── holocron.py                     # Lanzador rapido en la raiz del proyecto
 ├── src/
 │   ├── __init__.py
 │   ├── cli.py                      # Punto de entrada por linea de comandos

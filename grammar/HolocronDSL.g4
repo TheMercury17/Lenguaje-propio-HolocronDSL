@@ -285,7 +285,7 @@ FUNC_NADIR              : 'nadir' | 'minimo';
 FUNC_DESVIACION         : 'desviacion';
 
 // -- Palabras reservadas: Visualizaciones --
-HOLOGRAMA               : 'holograma' | 'proyectar_holograma';
+HOLOGRAMA               : 'holograma' | 'proyectar_holograma' | 'graficar';
 FIN_HOLOGRAMA           : 'fin_holograma';
 TIPO_BARRAS             : 'barras';
 TIPO_LINEAS             : 'lineas';
@@ -298,10 +298,10 @@ TITULO                  : 'titulo' | 'holotitulo';
 GUARDAR                 : 'guardar' | 'guardar_proyeccion';
 
 // -- Control de flujo y transmision --
-EVALUAR_FUERZA          : 'evaluar_fuerza';
-SENDA_LUMINOSA          : 'senda_luminosa';
-SENDA_OSCURA            : 'senda_oscura';
-FIN_EVALUAR             : 'fin_evaluar';
+EVALUAR_FUERZA          : 'evaluar_fuerza' | 'si' | 'si_fuerza';
+SENDA_LUMINOSA          : 'senda_luminosa' | 'entonces';
+SENDA_OSCURA            : 'senda_oscura' | 'sino';
+FIN_EVALUAR             : 'fin_evaluar' | 'fin_si';
 TRANSMITIR              : 'transmitir' | 'transmitir_mensaje';
 MOSTRAR                 : 'mostrar';
 
@@ -348,15 +348,15 @@ BOOL                    : 'cierto_es' | 'falso_es' | 'verdadero' | 'falso';
 // -- Literales numericos --
 NUMERO                  : [0-9]+ ('.' [0-9]+)?;
 
-// -- Literales de cadena --
-CADENA                  : '"' (~["\r\n])* '"';
+// -- Literales de cadena (comillas dobles y simples) --
+CADENA                  : '"' (~["\r\n])* '"' | '\'' (~['\r\n])* '\'';
 
 // -- Identificadores --
 ID                      : [a-zA-Z_][a-zA-Z0-9_]*;
 
-// -- Comentarios --
-COMENTARIO_LINEA        : '--' ~[\r\n]* -> skip;
-COMENTARIO_BLOQUE       : '/-' .*? '-/' -> skip;
+// -- Comentarios (linea con --, # o //; bloque con /- -/ o /* */) --
+COMENTARIO_LINEA        : ('--' | '#' | '//') ~[\r\n]* -> skip;
+COMENTARIO_BLOQUE       : ('/-' .*? '-/' | '/*' .*? '*/') -> skip;
 
 // -- Espacios en blanco --
 WS                      : [ \t\r\n]+ -> skip;
