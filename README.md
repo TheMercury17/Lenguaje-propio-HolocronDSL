@@ -29,127 +29,175 @@ Esta arquitectura garantiza una originalidad absoluta frente a otros lenguajes c
 
 ---
 
-## 2. Guia Paso a Paso: Desde Cero hasta la Ejecucion
+## 2. Guia de Instalacion y Ejecucion Multiplataforma (Linux, Kali Linux y Windows)
 
-Si nunca has ejecutado un proyecto por consola o no sabes por donde empezar, sigue estos pasos exactos:
+Para desplegar y ejecutar HolocronDSL en cualquier sistema operativo (especialmente en distribuciones Linux como Kali Linux en VirtualBox, Debian, Ubuntu, o en entornos Windows), se deben seguir las siguientes instrucciones secuenciales:
 
-### Paso 0: Como abrir la terminal y ubicarse en la carpeta correcta
-Para que cualquier comando funcione, tu consola (PowerShell o CMD) debe estar ubicada en la carpeta raiz del proyecto.
+### Paso 0: Obtencion del proyecto y ubicacion de trabajo
 
-**Opcion A (La mas facil en Windows):**
-1. Abre el Explorador de Archivos de Windows y entra a la carpeta del proyecto:
-   `C:\Users\Sebas\OneDrive\Documents\Sergio Arboleda\Trabajos\Lenguajes de prog\Lenguaje propio`
-2. Haz clic en la barra de direcciones superior (donde se ve la ruta de las carpetas).
-3. Escribe `powershell` y presiona la tecla `Enter`.
-4. Se abrira una ventana azul ya ubicada exactamente en el proyecto.
+#### En entornos Linux (Kali Linux, Debian, Ubuntu):
+1. Abrir la terminal del sistema (`bash` o `zsh`).
+2. En caso de clonar mediante Git:
+   ```bash
+   git clone https://github.com/TheMercury17/Lenguaje-propio-HolocronDSL.git
+   cd Lenguaje-propio-HolocronDSL
+   ```
+3. En caso de contar con la carpeta ya descargada, navegar hasta ella:
+   ```bash
+   cd ruta/hacia/Lenguaje-propio-HolocronDSL
+   ```
+4. Comprobar la presencia de los archivos del repositorio con:
+   ```bash
+   ls -la
+   ```
+   Se observaran archivos como `Makefile`, `run_tests.py`, `requirements.txt` y los directorios `grammar`, `src`, `docs` y `examples`.
 
-**Opcion B (Usando el comando `cd` en cualquier terminal):**
-Si ya tienes una consola abierta, escribe este comando (con las comillas) y presiona `Enter`:
-```powershell
-cd "C:\Users\Sebas\OneDrive\Documents\Sergio Arboleda\Trabajos\Lenguajes de prog\Lenguaje propio"
-```
-
-Para verificar que estas en el lugar correcto, escribe:
-```powershell
-dir
-```
-Debes ver archivos como `README.md`, `run_tests.py`, `Makefile` y carpetas como `src`, `docs` y `examples`.
+#### En entornos Windows:
+1. Abrir PowerShell o CMD y posicionarse en la carpeta donde reside el proyecto:
+   ```powershell
+   cd ruta\hacia\Lenguaje-propio-HolocronDSL
+   ```
+2. Para comprobar la correcta ubicacion, ejecutar:
+   ```powershell
+   dir
+   ```
 
 ---
 
-### Paso 1: Que comandos escribir antes de ejecutar las cosas (Preparacion inicial)
-Solo debes hacer esto la primera vez que configuras el proyecto:
+### Paso 1: Instalacion de dependencias y preparacion del entorno
 
-1. **Verificar que Python este instalado:**
-   ```powershell
-   python --version
+#### En Kali Linux y distribuciones basadas en Debian:
+En versiones recientes de Kali Linux, el gestor de paquetes del sistema restringe la instalacion global de paquetes de Python mediante `pip` (politica PEP 668 de entorno administrado externamente). Por tal razon, se debe preparar un entorno virtual aislado:
+
+1. **Instalacion de paquetes base del sistema operativo (en caso de no tenerlos instalados):**
+   ```bash
+   sudo apt update
+   sudo apt install -y python3 python3-pip python3-venv make default-jre
    ```
-   *(Debe responder Python 3.11 o superior, por ejemplo Python 3.14)*.
+   *(Nota: `default-jre` se requiere en caso de que se desee recompilar la gramatica ANTLR4 desde cero).*
 
-2. **Instalar las dependencias oficiales del proyecto:**
+2. **Creacion y activacion del entorno virtual:**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+   *(Al activarse el entorno, la consola antepondra el prefijo `(venv)`).*
+
+3. **Instalacion de las dependencias oficiales del proyecto:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+   *(Esto instalara `antlr4-python3-runtime`, `pandas`, `numpy` y `matplotlib`).*
+
+4. **Verificacion de los analizadores de ANTLR4 generados:**
+   ```bash
+   python3 run_tests.py --grammar
+   ```
+
+#### En Windows:
+1. **Creacion y activacion del entorno virtual:**
+   ```powershell
+   python -m venv venv
+   .\venv\Scripts\activate
+   ```
+2. **Instalacion de dependencias:**
    ```powershell
    pip install -r requirements.txt
    ```
-   *(Esto instalara antlr4-python3-runtime, pandas, numpy y matplotlib)*.
-
-3. **Compilar la gramatica ANTLR4 (Generar los analizadores en Python):**
+3. **Verificacion de los analizadores de ANTLR4:**
    ```powershell
    python run_tests.py --grammar
    ```
-   *(O alternativamente: `antlr4 -Dlanguage=Python3 -visitor -o src/generated grammar/HolocronDSL.g4`)*.
 
 ---
 
-### Paso 2: Como ejecutar los ejemplos de HolocronDSL
-Los archivos con extension `.holo` (como `examples/01_telemetria_cazas.holo`) contienen codigo escrito en nuestro lenguaje. 
+### Paso 2: Ejecucion y analisis de programas HolocronDSL (.holo)
 
-Para ejecutarlos y analizarlos, puedes usar el script rapido `holocron.py` ubicado en la raiz o el script controlador `src/cli.py`:
+Los programas escritos en HolocronDSL poseen la extension `.holo` y se ubican en el directorio `examples/`. Para su analisis sintactico e inspeccion de arboles, se dispone del lanzador `holocron.py` o de la interfaz `src/cli.py`:
 
-1. **Validar si un programa esta bien escrito (sin errores sintacticos):**
-   ```powershell
-   python holocron.py examples/01_telemetria_cazas.holo --check
-   ```
-   *(O tambien: `python src/cli.py examples/01_telemetria_cazas.holo --check`)*.
-   *Respuesta esperada:*
+1. **Verificar la validez sintactica de un script (modo verificacion):**
+   - En Linux / Kali Linux:
+     ```bash
+     python3 holocron.py examples/01_telemetria_cazas.holo --check
+     ```
+   - En Windows:
+     ```powershell
+     python holocron.py examples/01_telemetria_cazas.holo --check
+     ```
+   *Salida esperada:*
    `Sintaxis verificada con exito: la Fuerza fluye en perfecta armonia.`
 
-2. **Ver como la computadora entiende la estructura de tu codigo (Arbol Sintactico):**
-   ```powershell
-   python src/cli.py examples/01_telemetria_cazas.holo --tree
-   ```
-   *Respuesta esperada:* Un diagrama visual que muestra cada sentencia, operacion y token reconocido en el programa.
+2. **Visualizar el Arbol Sintactico Concreto (CST) en formato jerarquico:**
+   - En Linux / Kali Linux:
+     ```bash
+     python3 src/cli.py examples/01_telemetria_cazas.holo --tree
+     ```
+   - En Windows:
+     ```powershell
+     python src/cli.py examples/01_telemetria_cazas.holo --tree
+     ```
+   *Salida esperada:* Representacion visual en consola con la descomposicion de cada regla sintactica y token reconocido.
 
-3. **Ver la notacion jerarquica LISP (parentizada):**
-   ```powershell
-   python src/cli.py examples/01_telemetria_cazas.holo --lisp
+3. **Visualizar el arbol en notacion parentizada tipo LISP:**
+   ```bash
+   python3 src/cli.py examples/01_telemetria_cazas.holo --lisp
    ```
 
-4. **Probar una linea de codigo directamente en la terminal:**
-   ```powershell
-   python src/cli.py --codigo "cazas = abrir_holocron \"flota.csv\" |> purgar donde escudos > 50" --tree
+4. **Analizar una linea o expresion directamente desde la terminal:**
+   ```bash
+   python3 src/cli.py --codigo "cazas = abrir_holocron \"flota.csv\" |> purgar donde escudos > 50" --tree
    ```
 
 ---
 
-### Paso 3: Como ejecutar las pruebas (juntas o por separado)
-El proyecto incluye un script gestor (`run_tests.py`) que te permite correr pruebas facilmente:
+### Paso 3: Ejecucion de la suite de pruebas unitarias
 
-#### Para ejecutar todas las pruebas a la vez:
-```powershell
-python run_tests.py
-```
-*(O si deseas que ademas valide todos los archivos `.holo` de la carpeta examples: `python run_tests.py --all`)*.
+El script `run_tests.py` coordina las pruebas automatizadas de forma multiplataforma:
 
-#### Para ejecutar las pruebas por separado:
-* **Solo el analizador lexico (palabras reservadas, numeros, operadores):**
-  ```powershell
-  python run_tests.py --lexer
+#### Ejecucion de la totalidad de las pruebas unitarias:
+- En Linux / Kali Linux:
+  ```bash
+  python3 run_tests.py
   ```
-* **Solo la sintaxis de programas validos (pipelines, agregaciones, hologramas):**
+- En Windows:
   ```powershell
-  python run_tests.py --parser
+  python run_tests.py
   ```
-* **Solo las pruebas de captura y reporte de errores sintacticos:**
-  ```powershell
-  python run_tests.py --invalid
+*(Para evaluar ademas la validez de los 5 programas de ejemplo de la carpeta `examples/`, se añade el parametro `--all`: `python3 run_tests.py --all`).*
+
+#### Ejecucion modular de pruebas por componente:
+* **Pruebas del analizador lexico (tokens, palabras reservadas y literales):**
+  ```bash
+  python3 run_tests.py --lexer
   ```
-* **Verificar todos los archivos de ejemplo en `examples/`:**
-  ```powershell
-  python run_tests.py --examples
+* **Pruebas del analizador sintactico (construcciones y pipelines validos):**
+  ```bash
+  python3 run_tests.py --parser
+  ```
+* **Pruebas de deteccion de errores sintacticos y recuperacion:**
+  ```bash
+  python3 run_tests.py --invalid
+  ```
+* **Validacion sintactica de todos los ejemplos en `examples/`:**
+  ```bash
+  python3 run_tests.py --examples
   ```
 
 ---
 
-### Paso 4: (Opcional) Usando el `Makefile`
-Si estas en Linux, macOS, WSL o tienes la herramienta `make` instalada:
+### Paso 4: Automatizacion con Makefile (Recomendado en Linux / Kali Linux)
+
+En entornos Unix y distribuciones como Kali Linux, se recomienda el empleo de la herramienta `make` para agilizar las tareas de desarrollo:
+
 ```bash
-make help            # Lista todos los comandos disponibles
-make test            # Ejecuta todas las pruebas
-make test-lexer      # Solo pruebas lexicas
-make test-parser     # Solo pruebas sintacticas validas
-make test-invalid    # Solo pruebas de errores
-make check-examples  # Valida los 5 ejemplos .holo
-make clean           # Limpia archivos de cache
+make help            # Lista todos los comandos disponibles en el proyecto
+make install         # Instala las dependencias declaradas en requirements.txt
+make test            # Ejecuta la totalidad de las pruebas unitarias
+make test-lexer      # Ejecuta exclusivamente las pruebas lexicas
+make test-parser     # Ejecuta exclusivamente las pruebas sintacticas positivas
+make test-invalid    # Ejecuta pruebas sintacticas de deteccion de errores
+make check-examples  # Valida sintacticamente los 5 programas galacticos en examples/
+make clean           # Remueve archivos residuales de cache (__pycache__)
 ```
 
 ---

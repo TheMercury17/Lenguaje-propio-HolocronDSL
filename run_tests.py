@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 # Script utilitario de ejecucion de pruebas y validaciones para HolocronDSL
 # Permite ejecutar pruebas completas o por separado en cualquier sistema operativo
 

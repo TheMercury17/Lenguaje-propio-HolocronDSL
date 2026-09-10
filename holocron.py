@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 # Punto de entrada directo en la raiz del proyecto para HolocronDSL
 # Permite ejecutar archivos .holo simplemente con: python holocron.py ruta_al_archivo.holo
 

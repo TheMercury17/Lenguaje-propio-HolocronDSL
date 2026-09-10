@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 # Interfaz de linea de comandos (CLI) para HolocronDSL
 # Permite analizar sintacticamente archivos .holo y visualizar el arbol de derivacion
 

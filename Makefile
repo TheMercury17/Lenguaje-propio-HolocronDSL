@@ -4,21 +4,26 @@
 # Grupo 5: Andres Sebastian Coral Vallejo, Carol Arenas Cardona
 # =============================================================================
 
-PYTHON ?= python
+ifeq ($(OS),Windows_NT)
+    PYTHON ?= python
+else
+    PYTHON ?= python3
+endif
+
 ANTLR4 ?= antlr4
 
 .PHONY: help install grammar test test-lexer test-parser test-invalid check-examples clean
 
 help:
-	@echo Comandos disponibles para HolocronDSL:
-	@echo   make install        - Instalar dependencias del proyecto desde requirements.txt
-	@echo   make grammar        - Compilar la gramatica ANTLR4 a codigo Python en src/generated
-	@echo   make test           - Ejecutar la suite completa de pruebas unitarias
-	@echo   make test-lexer     - Ejecutar pruebas del analizador lexico
-	@echo   make test-parser    - Ejecutar pruebas sintacticas de construcciones validas
-	@echo   make test-invalid   - Ejecutar pruebas sintacticas negativas (deteccion de errores)
-	@echo   make check-examples - Validar sintacticamente todos los programas .holo en examples/
-	@echo   make clean          - Limpiar caches de Python y archivos temporales
+	@echo "Comandos disponibles para HolocronDSL:"
+	@echo "  make install        - Instalar dependencias del proyecto desde requirements.txt"
+	@echo "  make grammar        - Compilar la gramatica ANTLR4 a codigo Python en src/generated"
+	@echo "  make test           - Ejecutar la suite completa de pruebas unitarias"
+	@echo "  make test-lexer     - Ejecutar pruebas del analizador lexico"
+	@echo "  make test-parser    - Ejecutar pruebas sintacticas de construcciones validas"
+	@echo "  make test-invalid   - Ejecutar pruebas sintacticas negativas (deteccion de errores)"
+	@echo "  make check-examples - Validar sintacticamente todos los programas .holo en examples/"
+	@echo "  make clean          - Limpiar caches de Python y archivos temporales"
 
 install:
 	$(PYTHON) -m pip install -r requirements.txt
