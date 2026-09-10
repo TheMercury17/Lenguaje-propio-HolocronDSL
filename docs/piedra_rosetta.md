@@ -1,4 +1,4 @@
-# Piedra Rosetta: Tabla de Traduccion y Equivalencias de HolocronDSL
+# Piedra Rosetta: Tabla Comparativa y de Traduccion de HolocronDSL
 
 **Universidad Sergio Arboleda**  
 **Programa de Ciencias de la Computacion e Inteligencia Artificial**  
@@ -13,144 +13,176 @@
 
 Historicamente, la **Piedra de Rosetta** permitio a los egiptologos descifrar los jeroglificos del Antiguo Egipto al presentar el mismo decreto grabado en tres escrituras distintas: jeroglificos, demotico y griego antiguo.
 
-En la teoria de lenguajes de programacion y compiladores, una **Piedra Rosetta** es un documento de referencia comparativa que expone las mismas operaciones de computacion expresadas en multiples lenguajes y paradigmas.
+En la teoria de lenguajes de programacion y transduccion, una **Piedra Rosetta** es un documento academico de referencia comparativa que expone las mismas operaciones de computacion expresadas en los paradigmas dominantes de la industria.
 
 Este documento establece la equivalencia directa entre:
 1. **La Operacion Conceptual:** Que transformacion matematica o de datos se desea realizar.
-2. **Python + pandas:** El estandar de facto en la industria de la ciencia de datos.
-3. **SQL / R (dplyr):** El paradigma relacional y funcional clasico.
-4. **El Lenguaje de Referencia ("Lenguaje Momo/Grasa"):** Implementacion del repositorio de referencia estudiantil.
-5. **HolocronDSL:** Nuestro lenguaje formal, declarativo e inspirado en Star Wars.
-
-Esta matriz demuestra que **HolocronDSL no solo tiene un equivalente absoluto para cada caracteristica existente en el lenguaje de referencia**, sino que **incorpora capacidades avanzadas adicionales exigidas en la especificacion del curso** (como eliminacion de duplicados, saneamiento de nulos y abstraccion de funciones mediante misiones), conservando una originalidad absoluta de diseño y sintaxis.
+2. **Python con pandas:** El estandar de la industria para manipulacion de datos en entornos generales.
+3. **R con dplyr:** El lenguaje funcional pionero en encadenamiento declarativo de pipelines (`%>%` / `|>`).
+4. **SQL ANSI:** El estandar universal declarativo para bases de datos relacionales.
+5. **HolocronDSL:** Nuestro lenguaje de dominio especifico declarativo inspirado en Star Wars.
 
 ---
 
 ## 2. Matriz General de Equivalencias
 
-| Concepto / Operacion | Python (pandas) | SQL / R (dplyr) | Lenguaje de Referencia (Momo) | HolocronDSL (Star Wars) |
+| Concepto / Operacion | Python (pandas) | R (dplyr / readr) | SQL ANSI | HolocronDSL (Star Wars) |
 | :--- | :--- | :--- | :--- | :--- |
-| **Cargar archivo CSV** | `df = pd.read_csv("datos.csv")` | `read_csv("datos.csv")` | `pasa_el_pack "datos.csv" XD` | `df = abrir_holocron "datos.csv"` |
-| **Configurar separador** | `sep=","` | `sep=","` | `separador ","` | `delimitado_por ","` |
-| **Operador de Asignacion** | `=` | `<-` / `=` | `=` | `=` |
-| **Operador de Pipeline** | Encadenamiento con puntos `.pipe()` | `%>%` o `\|>` | `\|:v>` o `\|>` | `\|>` (o `>>`) |
-| **Terminador de Sentencia** | Salto de linea | Salto de linea / `;` | `XD` obligatorio | Salto de linea limpio (sin terminador artificial) |
-| **Seleccionar Columnas** | `df[['a', 'b']]` | `SELECT a, b` / `select(a, b)` | `escojo_a [a, b]` / `escojo_a_los_papus` | `revelar [a, b]` |
-| **Filtrar Filas** | `df[df['x'] > 10]` | `WHERE x > 10` / `filter(x > 10)` | `but_te_enteras_que x > 10` | `purgar donde x > 10` |
-| **Conector Logico Y (AND)** | `&` | `AND` | Operador relacional encadenado | `y` (o `y_fuerza`) |
-| **Conector Logico O (OR)** | `\|` | `OR` | Operador relacional encadenado | `o` (o `o_fuerza`) |
-| **Conector Logico NO (NOT)**| `~` | `NOT` | No implementado de forma aislada | `no` (o `no_fuerza`) |
-| **Crear / Modificar Columna**| `df['total'] = df['p'] * df['u']` | `total = p * u` / `mutate(total = p * u)`| `el_futuro_es_hoy_oiste_viejo total = p * u` | `forjar total = p * u` |
-| **Ordenar Registros** | `df.sort_values('x', ascending=False)` | `ORDER BY x DESC` / `arrange(desc(x))` | `ordenar_a_los_papus x de_arriba_a_abajo` | `ordenar por x descendente` |
-| **Eliminar Duplicados** | `df.drop_duplicates()` | `SELECT DISTINCT` / `distinct()` | *No implementado* | `eliminar_clones` |
-| **Tratar Nulos (Rellenar)** | `df.fillna(0)` | `COALESCE(col, 0)` / `replace_na(0)` | *No implementado* | `sanar_vacios con 0` |
-| **Tratar Nulos (Descartar)** | `df.dropna()` | `WHERE col IS NOT NULL` / `drop_na()`| *No implementado* | `sanar_vacios descartar` |
-| **Agrupar por Categorias** | `df.groupby(['cat'])` | `GROUP BY cat` / `group_by(cat)` | `juntar_a_la_grasa_por [cat]` | `agrupar por [cat]` |
-| **Resumir Indicadores** | `.agg(...)` | Funciones agregadas en `SELECT` | `sacar_cuentas ...` | `resumir ...` |
-| **Conteo de Registros** | `df.count()` | `COUNT(*)` / `n()` | `contar_papus()` / `conteo()` | `recuento()` |
-| **Suma Total** | `df['x'].sum()` | `SUM(x)` | `suma(x)` / `sumar_papus(x)` | `acumular(x)` |
-| **Media / Promedio** | `df['x'].mean()` | `AVG(x)` / `mean(x)` | `promedio(x)` / `media(x)` | `equilibrio(x)` |
-| **Mediana Estadistica** | `df['x'].median()` | `MEDIAN(x)` / `median(x)` | `mediana(x)` | `mediana(x)` |
-| **Valor Maximo** | `df['x'].max()` | `MAX(x)` | `el_mas_pro(x)` / `maximo(x)` | `cenit(x)` |
-| **Valor Minimo** | `df['x'].min()` | `MIN(x)` | `el_mas_manco(x)` / `minimo(x)` | `nadir(x)` |
-| **Desviacion Estandar** | `df['x'].std()` | `STDDEV(x)` / `sd(x)` | `desviacion_pro(x)` | `desviacion(x)` |
-| **Guardar Resultados CSV** | `df.to_csv("salida.csv")` | `INTO OUTFILE "salida.csv"` | `subir_al_grupo id en "salida.csv" XD` | `archivar_holocron id en "salida.csv"` |
-| **Grafico de Barras** | `df.plot(kind='bar')` | `geom_bar()` | `graficar_momos_en_barras id ... XD` | `holograma barras id ...` |
-| **Grafico de Lineas** | `df.plot(kind='line')` | `geom_line()` | `graficar_momos_en_lineas id ... XD` | `holograma lineas id ...` |
-| **Grafico de Dispersion** | `df.plot(kind='scatter')` | `geom_point()` | `graficar_momos_en_dispersion id ... XD` | `holograma dispersion id ...` |
-| **Histograma** | `df.plot(kind='hist')` | `geom_histogram()` | `graficar_momos_en_histograma id ... XD` | `holograma histograma id ...` |
-| **Grafico de Cajas** | `df.plot(kind='box')` | `geom_boxplot()` | `graficar_momos_en_cajas id ... XD` | `holograma caja id ...` |
-| **Condicional Logico** | `if condicion: ... else: ...` | `CASE WHEN ... THEN ... ELSE ... END` | `si_el_papu ... entonces ... fin_del_momo XD` | `evaluar_fuerza ... senda_luminosa ... fin_evaluar` |
-| **Definicion de Funciones** | `def mi_funcion(x): ...` | `FUNCTION mi_funcion(x) ...` | *No implementado* | `mision mi_mision (x) ... retornar y fin_mision` |
-| **Impresion en Consola** | `print(...)` | `PRINT` / `cat(...)` | `when_haces ... XD` | `mostrar ...` / `transmitir ...` |
-| **Comentarios de Linea** | `# comentario` | `-- comentario` | `# comentario` / `// comentario` | `-- comentario` (soporta `#` y `//`) |
-| **Comentarios de Bloque** | `""" bloque """` | `/* bloque */` | *No implementado* | `/- bloque -/` (soporta `/* */`) |
-| **Literales Booleanos** | `True`, `False` | `TRUE`, `FALSE` | `1`, `0` | `cierto_es`, `falso_es` (o `verdadero`, `falso`) |
+| **Cargar archivo CSV** | `df = pd.read_csv("datos.csv")` | `df <- read_csv("datos.csv")` | `FROM datos` | `df = abrir_holocron "datos.csv"` |
+| **Configurar separador** | `sep=","` | `delim=","` | N/A | `delimitado_por ","` |
+| **Asignacion de variable** | `=` | `<-` o `=` | N/A | `=` |
+| **Operador de Pipeline** | `.pipe(...)` | `%>%` o `\|>` | Subconsultas encadenadas | `\|>` (o `>>`) |
+| **Seleccionar Columnas** | `df[['a', 'b']]` | `select(a, b)` | `SELECT a, b` | `revelar [a, b]` |
+| **Filtrar Filas** | `df[df['x'] > 10]` | `filter(x > 10)` | `WHERE x > 10` | `purgar donde x > 10` |
+| **Conector Logico Y (AND)** | `&` | `&` | `AND` | `y` (o `y_fuerza`) |
+| **Conector Logico O (OR)** | `\|` | `\|` | `OR` | `o` (o `o_fuerza`) |
+| **Conector Logico NO (NOT)**| `~` | `!` | `NOT` | `no` (o `no_fuerza`) |
+| **Crear / Modificar Columna**| `df['total'] = df['p'] * df['u']` | `mutate(total = p * u)` | `p * u AS total` | `forjar total = p * u` |
+| **Ordenar Registros** | `df.sort_values('x', ascending=False)` | `arrange(desc(x))` | `ORDER BY x DESC` | `ordenar por x descendente` |
+| **Eliminar Duplicados** | `df.drop_duplicates()` | `distinct()` | `SELECT DISTINCT` | `eliminar_clones` |
+| **Tratar Nulos (Rellenar)** | `df.fillna(0)` | `replace_na(list(x = 0))` | `COALESCE(x, 0)` | `sanar_vacios con 0` |
+| **Tratar Nulos (Descartar)** | `df.dropna()` | `drop_na()` | `WHERE x IS NOT NULL` | `sanar_vacios descartar` |
+| **Agrupar por Categorias** | `df.groupby(['cat'])` | `group_by(cat)` | `GROUP BY cat` | `agrupar por [cat]` |
+| **Resumir Indicadores** | `.agg(...)` | `summarise(...)` | Funciones agregadas en `SELECT` | `resumir ...` |
+| **Conteo de Registros** | `df.count()` | `n()` | `COUNT(*)` | `recuento()` |
+| **Suma Total** | `df['x'].sum()` | `sum(x)` | `SUM(x)` | `acumular(x)` |
+| **Media / Promedio** | `df['x'].mean()` | `mean(x)` | `AVG(x)` | `equilibrio(x)` |
+| **Mediana Estadistica** | `df['x'].median()` | `median(x)` | `MEDIAN(x)` / `PERCENTILE_CONT(0.5)` | `mediana(x)` |
+| **Valor Maximo** | `df['x'].max()` | `max(x)` | `MAX(x)` | `cenit(x)` |
+| **Valor Minimo** | `df['x'].min()` | `min(x)` | `MIN(x)` | `nadir(x)` |
+| **Desviacion Estandar** | `df['x'].std()` | `sd(x)` | `STDDEV(x)` | `desviacion(x)` |
+| **Guardar Resultados CSV** | `df.to_csv("salida.csv")` | `write_csv(df, "salida.csv")` | `INTO OUTFILE "salida.csv"` | `archivar_holocron df en "salida.csv"` |
+| **Grafico de Barras** | `df.plot(kind='bar')` | `geom_bar()` | N/A | `holograma barras df` |
+| **Grafico de Lineas** | `df.plot(kind='line')` | `geom_line()` | N/A | `holograma lineas df` |
+| **Grafico de Dispersion** | `df.plot(kind='scatter')` | `geom_point()` | N/A | `holograma dispersion df` |
+| **Histograma** | `df.plot(kind='hist')` | `geom_histogram()` | N/A | `holograma histograma df` |
+| **Grafico de Cajas** | `df.plot(kind='box')` | `geom_boxplot()` | N/A | `holograma caja df` |
+| **Condicional Logico** | `if condicion: ... else: ...` | `if (cond) { ... } else { ... }` | `CASE WHEN ... THEN ... END` | `evaluar_fuerza ... senda_luminosa ... fin_evaluar` |
+| **Definicion de Funciones** | `def mi_funcion(x): ...` | `mi_funcion <- function(x) { ... }` | `CREATE FUNCTION ...` | `mision mi_mision (x) ... retornar y fin_mision` |
+| **Impresion en Consola** | `print(...)` | `print(...)` / `cat(...)` | `SELECT 'mensaje'` | `mostrar ...` / `transmitir ...` |
+| **Comentarios de Linea** | `# comentario` | `# comentario` | `-- comentario` | `-- comentario` (soporta `#` y `//`) |
+| **Comentarios de Bloque** | `""" bloque """` | N/A | `/* bloque */` | `/- bloque -/` (soporta `/* */`) |
+| **Literales Booleanos** | `True`, `False` | `TRUE`, `FALSE` | `TRUE`, `FALSE` | `cierto_es`, `falso_es` (o `verdadero`, `falso`) |
 
 ---
 
-## 3. Comparativa Practica: Un Mismo Flujo en los 3 Paradigmas
+## 3. Comparativa Practica: Un Mismo Flujo en los 3 Estandares y HolocronDSL
 
-Para observar con total claridad la diferencia de elegancia, legibilidad y diseño, observemos la solucion al mismo problema de analisis en los tres lenguajes:
+Para observar con claridad la diferencia de expresividad y diseño, analicemos el mismo flujo de datos resuelto en los tres estandares consolidados y en **HolocronDSL**:
 
-### Problema:
-> Cargar un archivo de ventas, seleccionar columnas relevantes, filtrar registros con precio positivo, calcular el total vendido, agrupar por ciudad, calcular el promedio de ventas y exportar a un CSV.
+### Problema de Negocio:
+> Cargar un conjunto de datos de telemetria de naves, seleccionar atributos clave, purgar aquellas con escudos inactivos (cero o menor), calcular el indice de poder de fuego, agrupar por faccion, calcular el promedio de escudos y el maximo poder de fuego, y exportar la tabla resumen a un archivo CSV.
 
 ---
 
-### Solucion 1: Python con pandas (Codigo Imperativo Tradicional)
+### Solucion 1: Python con pandas (Paradigma Orientado a Objetos e Indexacion)
 ```python
 import pandas as pd
 
-ventas = pd.read_csv("datos/ventas.csv")
-ventas_limpias = ventas[['fecha', 'ciudad', 'unidades', 'precio']]
-ventas_limpias = ventas_limpias[ventas_limpias['precio'] > 0]
-ventas_limpias['total'] = ventas_limpias['unidades'] * ventas_limpias['precio']
+# Ingestion
+flota = pd.read_csv("datos/telemetria.csv")
 
-resumen = ventas_limpias.groupby('ciudad').agg(
-    promedio_total=('total', 'mean'),
-    max_total=('total', 'max')
+# Preparacion y transformacion
+flota_limpia = flota[['modelo', 'faccion', 'escudos', 'victorias']]
+flota_limpia = flota_limpia[flota_limpia['escudos'] > 0]
+flota_limpia['poder_fuego'] = flota_limpia['victorias'] * 15 + flota_limpia['escudos'] / 2
+
+# Agrupamiento y agregacion
+resumen = flota_limpia.groupby('faccion').agg(
+    promedio_defensa=('escudos', 'mean'),
+    max_ataque=('poder_fuego', 'max')
 ).reset_index()
 
-resumen.to_csv("salidas/resumen_ciudades.csv", index=False)
-print("Analisis finalizado")
+# Exportacion
+resumen.to_csv("salidas/resumen_facciones.csv", index=False)
+print("Analisis de flota finalizado")
 ```
 
 ---
 
-### Solucion 2: Lenguaje de Referencia (Tematica Memes / Papus)
-```text
-ventas = pasa_el_pack "datos/ventas.csv" XD
-ventas_limpias = ventas
-    |:v> escojo_a [fecha, ciudad, unidades, precio]
-    |:v> but_te_enteras_que precio > 0
-    |:v> el_futuro_es_hoy_oiste_viejo total = unidades * precio XD
+### Solucion 2: R con dplyr (Paradigma Funcional con Pipes)
+```r
+library(dplyr)
+library(readr)
 
-resumen = ventas_limpias
-    |:v> juntar_a_la_grasa_por [ciudad]
-    |:v> sacar_cuentas
-        promedio_total = promedio(total),
-        max_total = el_mas_pro(total) XD
+# Ingestion y pipeline funcional
+flota <- read_csv("datos/telemetria.csv")
 
-subir_al_grupo resumen en "salidas/resumen_ciudades.csv" XD
-when_haces "Analisis finalizado" XD
+resumen <- flota %>%
+  select(modelo, faccion, escudos, victorias) %>%
+  filter(escudos > 0) %>%
+  mutate(poder_fuego = victorias * 15 + escudos / 2) %>%
+  group_by(faccion) %>%
+  summarise(
+    promedio_defensa = mean(escudos),
+    max_ataque = max(poder_fuego)
+  )
+
+# Exportacion
+write_csv(resumen, "salidas/resumen_facciones.csv")
+cat("Analisis de flota finalizado\n")
 ```
 
 ---
 
-### Solucion 3: HolocronDSL (Tematica Galactica Star Wars, Limpio e Intuitivo)
+### Solucion 3: SQL ANSI (Paradigma Relacional Declarativo)
+```sql
+-- Creacion de tabla intermedia con transformaciones y agregacion agrupada
+WITH flota_filtrada AS (
+    SELECT 
+        modelo, 
+        faccion, 
+        escudos, 
+        victorias,
+        (victorias * 15 + escudos / 2.0) AS poder_fuego
+    FROM telemetria
+    WHERE escudos > 0
+)
+SELECT 
+    faccion,
+    AVG(escudos) AS promedio_defensa,
+    MAX(poder_fuego) AS max_ataque
+FROM flota_filtrada
+GROUP BY faccion;
+```
+
+---
+
+### Solucion 4: HolocronDSL (Lenguaje de Dominio Especifico Galactico)
 ```holocron
-ventas = abrir_holocron "datos/ventas.csv"
+-- Ingestion del holocron de datos
+flota = abrir_holocron "datos/telemetria.csv"
 
-ventas_limpias = ventas
-    |> revelar [ fecha, ciudad, unidades, precio ]
-    |> purgar donde precio > 0
-    |> forjar total = unidades * precio
+-- Pipeline fluido de preparacion y calculo
+flota_activa = flota
+    |> revelar [ modelo, faccion, escudos, victorias ]
+    |> purgar donde escudos > 0
+    |> forjar poder_fuego = victorias * 15 + escudos / 2
 
-resumen = ventas_limpias
-    |> agrupar por [ ciudad ]
+-- Agrupamiento por sector y sintesis de indicadores descriptivos
+resumen = flota_activa
+    |> agrupar por [ faccion ]
     |> resumir
-        promedio_total = equilibrio(total),
-        max_total = cenit(total)
+        promedio_defensa = equilibrio(escudos),
+        max_ataque = cenit(poder_fuego)
 
-archivar_holocron resumen en "salidas/resumen_ciudades.csv"
-mostrar "Analisis finalizado"
+-- Persistencia en disco y notificacion
+archivar_holocron resumen en "salidas/resumen_facciones.csv"
+mostrar "Analisis de flota finalizado"
 ```
 
 ---
 
-## 4. Evaluacion de Diferenciacion y Cumplimiento
+## 4. Ventajas de Diseño de HolocronDSL
 
-1. **Cero Plagio / Cero Similitud Lexica:**
-   - Ninguna palabra reservada de HolocronDSL coincide con el lenguaje de referencia.
-   - Se eliminaron los terminadores artificiales molestos como `XD`.
-   - Se descartaron operadores comicos como `|:v>` en favor del conector funcional estándar de hiperespacio `|>`.
-
-2. **Mayor Poder Expresivo:**
-   - HolocronDSL incorpora primitivas de limpieza de datos indispensables para la ciencia de datos real que no existen en el lenguaje de referencia:
-     - `eliminar_clones` para deduplicacion de registros.
-     - `sanar_vacios con ...` y `sanar_vacios descartar` para tratamiento de valores nulos (NaN / NULL).
-     - Abstraccion completa con paso de argumentos y retorno de tablas mediante `mision`.
-
-3. **Adherencia Exacta al Documento del Curso (`Proyecto_LP.pdf`):**
-   - La sintaxis de HolocronDSL respeta al 100% la estructura conceptual propuesta por el docente Joaquin F. Sanchez, ofreciendo una experiencia declarativa, elegante y reproducible.
+1. **Simplicidad Declarativa:**
+   A diferencia de Python con pandas, no requiere gestionar indices (`.reset_index()`), ni sintaxis redundante de indexacion booleana (`df[df['col'] > 0]`).
+2. **Encadenamiento Natural:**
+   Adopta la elegancia del conector de pipeline funcional (`|>`), evitando el anidamiento complejo de subconsultas como en SQL.
+3. **Vocabulario Tematico Coherente:**
+   Las operaciones reflejan de manera intuitiva el dominio:
+   - `abrir_holocron` / `archivar_holocron` para lectura y escritura.
+   - `purgar donde` para filtrado.
+   - `forjar` para calculo de columnas.
+   - `equilibrio` (media), `cenit` (maximo) y `nadir` (minimo) como funciones estadisticas elegantes y naturales.
+   - `holograma` para proyecciones visuales de datos.
