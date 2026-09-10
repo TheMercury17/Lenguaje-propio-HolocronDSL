@@ -72,6 +72,110 @@ El nombre va a la izquierda y el contenido a la derecha del signo `=`.
   -/
   ```
 
+### 2.4 Anatomia del Codigo: ¿Que papel cumple cada palabra?
+Cuando ves una linea de codigo en HolocronDSL, cada palabra pertenece a una de estas cinco categorias:
+
+1. **Palabras Reservadas (Las ordenes fijas del lenguaje):**
+   Son verbos y palabras clave que ya vienen programadas en el lenguaje. **No las puedes cambiar ni inventar**. Le dicen a la computadora que accion ejecutar:
+   *Ejemplos:* `abrir_holocron`, `revelar`, `purgar`, `donde`, `forjar`, `ordenar`, `resumir`, `holograma`, `mostrar`.
+
+2. **Nombres de Variables (Las etiquetas que tu inventas):**
+   Son los nombres libres que tu eliges para bautizar tus tablas o resultados intermedios. Deben comenzar con una letra, sin espacios.
+   *Ejemplos:* `flota_imperial`, `cazas_pesados`, `resumen_ciudades`, `datos_limpios`.
+
+3. **Nombres de Columnas (Los campos de tu tabla):**
+   Son los titulos de las columnas que vienen dentro de tu archivo CSV. El lenguaje las busca dentro de la tabla para operar sobre ellas.
+   *Ejemplos:* `modelo`, `faccion`, `escudos`, `victorias`, `precio`, `ciudad`.
+
+4. **Operadores y Signos de Puntuacion:**
+   Simbolos que conectan o transforman los datos:
+   * `=` : Asignar o guardar en una variable.
+   * `|>` : Conector de pipeline (pasar el resultado a la siguiente operacion).
+   * `[ ... ]` : Corchetes para agrupar listas de columnas.
+   * `( ... )` : Paréntesis para envolver argumentos de funciones.
+   * `+`, `-`, `*`, `/` : Operaciones matematicas.
+   * `>`, `<`, `==`, `!=` : Comparaciones logicas.
+
+5. **Literales (Los valores fijos):**
+   Los datos concretos que tu escribes directamente:
+   * Numeros: `50`, `100`, `3.14`.
+   * Cadenas entre comillas: `"datos/flota.csv"`, `"Imperio"`.
+   * Booleanos: `cierto_es`, `falso_es`.
+
+---
+
+### 2.5 Desglose con Lupa: Analizando una Linea Real
+
+Observa esta linea de codigo:
+```holocron
+cazas_elite = flota |> purgar donde escudos > 50 y victorias >= 5
+```
+
+Si la desarmamos pieza por pieza:
+* **`cazas_elite`** : **Nombre de Variable Nueva** (etiqueta que tu inventaste para guardar el resultado).
+* **`=`** : **Operador de Asignacion** (guarda lo que esta a la derecha en la variable de la izquierda).
+* **`flota`** : **Nombre de Variable Existente** (la tabla original que cargaste antes).
+* **`|>`** : **Operador de Pipeline** (toma `flota` y la envia a la siguiente estacion).
+* **`purgar`** : **Palabra Reservada** (la orden de filtrar filas).
+* **`donde`** : **Palabra Reservada** (conector para introducir la condicion).
+* **`escudos`** : **Nombre de Columna** (atributo que esta adentro de la tabla `flota`).
+* **`>`** : **Operador de Comparacion** (mayor que).
+* **`50`** : **Literal Numerico** (el umbral de comparacion).
+* **`y`** : **Operador Logico** (exige que ambas condiciones se cumplan).
+* **`victorias`** : **Nombre de Columna** (otra columna de la tabla).
+* **`>=`** : **Operador de Comparacion** (mayor o igual que).
+* **`5`** : **Literal Numerico**.
+
+---
+
+### 2.6 Diccionario Completo de Palabras Reservadas
+
+A continuacion tienes el significado exacto de todas las palabras reservadas fijas del lenguaje:
+
+| Palabra Reservada | ¿Que significa en español simple? | ¿Para que se usa? |
+| :--- | :--- | :--- |
+| `abrir_holocron` | Cargar / Leer archivo | Abre un archivo CSV del disco para empezar a usarlo. |
+| `delimitado_por` | Con separador | Indica si las columnas estan separadas por comas, puntos y comas o tabuladores. |
+| `archivar_holocron` | Guardar / Exportar | Escribe una tabla procesada en un nuevo archivo CSV en el disco. |
+| `en` | Hacia la ruta | Conector que antecede la ruta del archivo donde se guardara. |
+| `revelar` | Seleccionar columnas | Elige que columnas quieres conservar, descartando las demas. |
+| `purgar` | Filtrar registros | Elimina las filas que no cumplan con la condicion indicada. |
+| `donde` | Bajo la condicion | Conector opcional para dar fluidez gramatical despues de `purgar`. |
+| `forjar` | Calcular nueva columna | Crea una columna nueva calculando formulas matematicas con las existentes. |
+| `ordenar` | Organizar filas | Ordena las filas de la tabla segun el valor de una columna. |
+| `por` | Segun el campo | Conector que indica cual columna gobernara el orden. |
+| `ascendente` | De menor a mayor | Criterio de orden de menor a mayor (A-Z o 0-9). |
+| `descendente` | De mayor a menor | Criterio de orden de mayor a menor (Z-A o 9-0). |
+| `eliminar_clones` | Quitar duplicados | Busca filas exactamente identicas repetidas y deja solo una. |
+| `sanar_vacios` | Arreglar nulos | Repara celdas vacias o incompletas de la tabla. |
+| `con` | Rellenar usando | Conector que indica con que valor se rellenaran los vacios (ej. `con 0`). |
+| `descartar` | Borrar la fila | Instruccion para suprimir cualquier fila que tenga datos faltantes. |
+| `agrupar` | Clasificar en grupos | Junta las filas que comparten el mismo valor en una categoria. |
+| `resumir` | Calcular estadisticas | Aplica funciones de sintesis (promedios, sumas) sobre cada grupo. |
+| `recuento()` | Contar filas | Cuenta cuantas filas pertenecen a cada categoria. |
+| `acumular(col)` | Sumar valores | Suma todos los numeros de esa columna. |
+| `equilibrio(col)` | Sacar el promedio | Calcula la media aritmetica (el equilibrio de la Fuerza en los datos). |
+| `mediana(col)` | Dato del medio | Encuentra el valor central exacto de la columna. |
+| `cenit(col)` | Valor maximo | Devuelve el valor mas alto registrado. |
+| `nadir(col)` | Valor minimo | Devuelve el valor mas bajo registrado. |
+| `desviacion(col)` | Dispersion | Mide que tan dispersos o variados estan los numeros respecto al promedio. |
+| `holograma` | Crear grafico | Inicia la construccion de una representacion visual. |
+| `barras`, `lineas`, `dispersion`, `histograma`, `caja` | Tipos de graficos | El formato visual en que se proyectaran los datos. |
+| `eje_x` | Variable horizontal | Asigna que columna va en la base horizontal del grafico. |
+| `eje_y` | Variable vertical | Asigna que columna va en la altura vertical del grafico. |
+| `titulo` | Encabezado | Define el texto superior que llevara el grafico. |
+| `guardar` | Guardar imagen | Define la ruta de la imagen PNG que se creara en el disco. |
+| `mision` | Definir funcion | Inicia una rutina de codigo personalizada y reutilizable. |
+| `retornar` | Devolver resultado | Entrega la tabla final producida por la mision. |
+| `fin_mision` | Fin de funcion | Cierra el bloque de la mision. |
+| `evaluar_fuerza` | Condicional / Si | Evalua una condicion de si es verdad o mentira. |
+| `senda_luminosa` | Si es verdadero | Bloque que se ejecuta si la condicion se cumplio. |
+| `senda_oscura` | Si es falso | Bloque alternativo que se ejecuta si la condicion no se cumplio. |
+| `fin_evaluar` | Fin de condicional | Cierra el bloque condicional. |
+| `mostrar` / `transmitir` | Imprimir en pantalla | Muestra un texto, numero o mensaje en la terminal de la computadora. |
+| `y`, `o`, `no` | Conectores logicos | Operadores para unir o negar condiciones booleanas. |
+| `cierto_es`, `falso_es` | Verdadero o Falso | Los dos estados posibles de la verdad logica. |
+
 ---
 
 ## Capitulo 3: El Pipeline de Hiperespacio (`|>`)
