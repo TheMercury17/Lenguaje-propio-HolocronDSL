@@ -206,20 +206,47 @@ El archivo `src/grammar/HolocronDSL.g4` define las reglas léxicas mediante expr
 ---
 
 ##### 3. Funciones de Agregación (Usadas exclusivamente dentro de `resumir`)
-* **`recuento()`** / **`conteo()`** *(Cuenta cuántas filas pertenecen a cada grupo. No necesita columna obligatoria)*.  
-  Ejemplo: `conteo_filas = recuento()`
+* **`recuento()`** / **`conteo()`** *(Cuenta cuántas filas pertenecen a cada grupo. No requiere obligatoriamente una columna)*.  
+  ```holocron
+  columna_cantidad_naves = recuento()
+  ```
+  *Explicación:* Crea la nueva columna `columna_cantidad_naves` con el número total de registros de cada grupo.
+
 * **`acumular(columna)`** / **`suma(columna)`** *(Calcula la sumatoria total de los valores numéricos de una columna en cada grupo)*.  
-  Ejemplo: `suma_puntos = acumular(columna_puntos)`
+  ```holocron
+  columna_total_victorias = acumular(victorias)
+  ```
+  *Explicación:* Suma todos los valores de la columna `victorias` del grupo y los guarda en la nueva columna `columna_total_victorias`.
+
 * **`equilibrio(columna)`** / **`promedio(columna)`** *(Calcula el promedio o media aritmética de los valores de una columna)*.  
-  Ejemplo: `promedio_edad = equilibrio(columna_edad)`
-* **`mediana(columna)`** *(Calcula el valor central que divide la muestra en dos partes iguales)*.  
-  Ejemplo: `mediana_salario = mediana(columna_salario)`
-* **`cenit(columna)`** / **`maximo(columna)`** *(Encuentra el valor numérico más alto o tope superior de la columna)*.  
-  Ejemplo: `record_maximo = cenit(columna_puntaje)`
-* **`nadir(columna)`** / **`minimo(columna)`** *(Encuentra el valor numérico más bajo o piso inferior de la columna)*.  
-  Ejemplo: `costo_minimo = nadir(columna_costo)`
+  ```holocron
+  columna_escudos_medios = equilibrio(escudos)
+  ```
+  *Explicación:* Suma los valores de `escudos` del grupo y los divide entre el número de filas válidas, redondeando a dos decimales.
+
+* **`mediana(columna)`** *(Calcula el valor central que divide la muestra ordenada en dos partes iguales)*.  
+  ```holocron
+  columna_escudos_mediana = mediana(escudos)
+  ```
+  *Explicación:* Ordena los escudos del grupo y selecciona el elemento central exacto (o el promedio de los dos centrales si la cantidad es par).
+
+* **`cenit(columna)`** / **`maximo(columna)`** *(Encuentra el valor numérico más alto o tope superior de la columna en cada grupo)*.  
+  ```holocron
+  columna_record_victorias = cenit(victorias)
+  ```
+  *Explicación:* Asigna en `columna_record_victorias` el valor máximo encontrado en la columna `victorias`.
+
+* **`nadir(columna)`** / **`minimo(columna)`** *(Encuentra el valor numérico más bajo o piso inferior de la columna en cada grupo)*.  
+  ```holocron
+  columna_menor_blindaje = nadir(escudos)
+  ```
+  *Explicación:* Asigna en `columna_menor_blindaje` el valor más bajo encontrado en la columna `escudos`.
+
 * **`desviacion(columna)`** *(Calcula la desviación estándar de la columna para medir qué tan dispersos están los datos)*.  
-  Ejemplo: `dispersion = desviacion(columna_tiempo)`
+  ```holocron
+  columna_dispersion = desviacion(escudos)
+  ```
+  *Explicación:* Mide la variabilidad de la columna `escudos` respecto a su promedio. Si todos los escudos son iguales, el resultado es 0.
 
 ---
 
@@ -408,27 +435,95 @@ src/runtime/
 ```
 
 ### 4.1 Biblioteca Matemática y Estadística (`HolocronMath`)
-Implementación de algoritmos puros en Python para análisis estadístico univariado:
-* `suma(valores)`: Acumulación filtrando elementos nulos.
-* `promedio(valores)`: Media aritmética calculada como cociente entre suma y conteo de valores válidos.
+Implementación de algoritmos puros en Python para análisis estadístico univariado sin recurrir a paquetes numéricos externos:
+* `suma(valores)`: Acumulación de valores ignorando nulos.
+* `promedio(valores)`: Media aritmética calculada como cociente entre la suma y la cantidad de valores válidos.
 * `mediana(valores)`: Ordenamiento interno; si la cantidad es impar toma el valor central exacto; si es par calcula el promedio de los dos elementos centrales.
-* `cenit(valores)` / `maximo(valores)`: Búsqueda del límite superior.
-* `nadir(valores)` / `minimo(valores)`: Búsqueda del límite inferior.
+* `cenit(valores)` / `maximo(valores)`: Búsqueda del valor numérico más alto.
+* `nadir(valores)` / `minimo(valores)`: Búsqueda del valor numérico más bajo.
 * `conteo(valores)`: Recuento cardinal de registros no nulos.
 * `varianza(valores)`: Media de las desviaciones cuadráticas respecto a la media poblacional.
 * `desviacion(valores)`: Raíz cuadrada de la varianza.
 * `division_segura(dividendo, divisor)`: Detección proactiva de cero en el denominador para lanzar `DivisionPorCeroError` tipado.
 
+#### Ejemplo de Funcionamiento Interno (Python):
+```python
+from src.runtime.math_engine import HolocronMath
+
+# Lista con valores numericos y un valor nulo para probar robustez
+mi_muestra = [120, 180, None, 200, 220, 120]
+
+total = HolocronMath.suma(mi_muestra)          # 840 (ignora None)
+media = HolocronMath.promedio(mi_muestra)      # 168.0
+mediana = HolocronMath.mediana(mi_muestra)     # 180
+maximo = HolocronMath.cenit(mi_muestra)        # 220
+minimo = HolocronMath.nadir(mi_muestra)        # 120
+cantidad = HolocronMath.conteo(mi_muestra)     # 5 registros validos
+dispersion = HolocronMath.desviacion(mi_muestra) # 41.18
+```
+
+#### Ejemplo Equivalente en Código HolocronDSL:
+```holocron
+mi_tabla_flota = abrir_holocron "datos/flota.csv"
+
+mi_analisis_estadistico = mi_tabla_flota
+    |> resumir [
+        total_puntos = acumular(victorias),
+        promedio_escudos = equilibrio(escudos),
+        mediana_escudos = mediana(escudos),
+        maximo_escudos = cenit(escudos),
+        minimo_escudos = nadir(escudos),
+        dispersion_escudos = desviacion(escudos)
+    ]
+
+transmitir mi_analisis_estadistico
+```
+*Explicación del ejemplo:*  
+- `mi_tabla_flota`: Variable con la tabla cargada.  
+- `victorias` y `escudos`: Columnas numéricas del archivo CSV.  
+- `mi_analisis_estadistico`: Tabla resumen de una sola fila con todas las métricas calculadas.
+
+---
+
 ### 4.2 Biblioteca de Entrada/Salida (`HolocronIO`)
 * **Parser CSV propio:** Lee archivos de texto plano caracter a caracter. Reconoce delimitadores personalizados, preserva campos que contienen comas dentro de comillas dobles y decodifica comillas escapadas (`""`).
-* **Inferencia automática de tipos:**
-  * Enteros: `"120"` -> `120`
-  * Decimales: `"98.5"` -> `98.5`
-  * Booleanos galácticos: `"cierto_es"`, `"verdadero"` -> `True`; `"falso_es"`, `"falso"` -> `False`
-  * Nulos: `"nulo"`, `"NaN"`, `""` -> `None`
+* **Inferencia automática de tipos:**  
+  * Enteros: `"120"` -> `120`  
+  * Decimales: `"98.5"` -> `98.5`  
+  * Booleanos galácticos: `"cierto_es"`, `"verdadero"` -> `True`; `"falso_es"`, `"falso"` -> `False`  
+  * Nulos: `"nulo"`, `"NaN"`, `""` -> `None`  
   * Cadenas: cadenas de texto libres.
-* **Exportador a Excel (.xls) nativo:** Genera documentos en formato **XML Spreadsheet 2003**. Este formato estándar permite que Microsoft Excel y LibreOffice Calc (en Linux) abran el archivo directamente reconociendo columnas, filas y tipos de datos numéricos y de texto sin requerir librerías externas de terceros.
+* **Exportador a Excel (.xls) nativo:** Genera documentos en formato **XML Spreadsheet 2003**. Este formato estándar permite que Microsoft Excel y LibreOffice Calc (en Kali Linux) abran el archivo directamente reconociendo columnas, filas y tipos de datos numéricos y de texto sin requerir librerías externas de terceros.
 * **Creación automática de directorios:** Utiliza `path.parent.mkdir(parents=True, exist_ok=True)` de modo que, si el usuario o docente especifica una subcarpeta inexistente (por ejemplo `"salidas/reportes/flota.xls"`), el motor crea la jerarquía completa de carpetas sin abortar.
+
+#### Ejemplo de Lectura con Inferencia Automática (Python):
+```python
+from src.runtime.io_engine import HolocronIO
+
+# Lectura directa con parseo manual caracter por caracter
+columnas, registros = HolocronIO.leer_csv("datos/flota.csv", delimitador=",")
+# columnas: ["id", "modelo", "escudos", "activo"]
+# registros: [
+#     {"id": "TIE-01", "modelo": "Interceptor", "escudos": 120, "activo": True},
+#     {"id": "XW-05",  "modelo": "X-Wing",      "escudos": 180, "activo": True}
+# ]
+```
+
+#### Ejemplo de Exportación a CSV y Excel en Código HolocronDSL:
+```holocron
+mi_tabla_datos = abrir_holocron "datos/flota.csv"
+
+// Caso 1: Exportar a texto CSV delimitado
+archivar_holocron mi_tabla_datos en "salidas/resultado_flota.csv"
+
+// Caso 2: Exportar a hoja de calculo Excel (.xls) en subcarpeta nueva
+archivar_holocron mi_tabla_datos en "salidas/subcarpeta_profesor/resultado_flota.xls"
+```
+*Explicación del ejemplo:*  
+- En el **Caso 1**, se genera un archivo de texto plano delimitado por comas.  
+- En el **Caso 2**, el motor detecta la terminación `.xls`, crea la carpeta `subcarpeta_profesor/` automáticamente y genera un libro de cálculo real que se abre de inmediato en LibreOffice Calc o Excel con columnas y celdas tipadas.
+
+---
 
 ### 4.3 Estructura de Datos Tabular (`HolocronTable`)
 Representa un conjunto de datos en memoria (`columnas: List[str]`, `filas: List[Dict[str, Any]]`).
@@ -436,29 +531,96 @@ Representa un conjunto de datos en memoria (`columnas: List[str]`, `filas: List[
 #### Inmutabilidad Funcional
 Cada operación sobre la tabla no modifica la instancia actual; en su lugar, produce y retorna una nueva instancia de `HolocronTable`. Esto previene efectos secundarios indeseados y garantiza la reproducibilidad de los pipelines.
 
-#### Operaciones Soportadas
-* `seleccionar(columnas)` / `revelar`: Proyecta un subconjunto vertical de columnas. Valida previamente que todas las columnas existan en la tabla original; si alguna falta, arroja `ColumnaInexistenteError`.
-* `purgar(predicado)`: Filtra horizontalmente las filas evaluando una expresión booleana sobre cada registro.
-* `forjar(nueva_columna, evaluador)`: Genera una nueva columna calculada a partir de expresiones aritméticas aplicadas a las columnas existentes.
-* `ordenar(columna, ascendente)`: Ordenamiento estable de registros aplicando el algoritmo Timsort de Python con manejo seguro de valores nulos.
-* `eliminar_clones()`: Deduplicación basada en la igualdad total de valores en todas las columnas.
-* `sanar_vacios(opcion, sustituto)`:
-  * `descartar`: Elimina cualquier fila que contenga al menos un campo nulo.
-  * `con <valor>`: Rellena los campos nulos con el valor indicado.
-* `agrupar(columnas)`: Segmenta el conjunto de datos creando una instancia de `HolocronGroupedTable`, indexada por tuplas de valores clave.
-* `resumir(agregaciones)`: Reduce las filas agrupadas (o toda la tabla) calculando las métricas estadísticas seleccionadas (`recuento`, `acumular`, `equilibrio`, `cenit`, `nadir`, etc.).
-* `a_cadena_tabular()`: Genera una representación en tabla de texto plano alineada para imprimir en terminal con `transmitir`.
+#### Ejemplo de Pipeline de Transformación en Código HolocronDSL:
+```holocron
+// 1. Cargar datos originales
+mi_tabla_base = abrir_holocron "datos/flota.csv"
+
+// 2. Encadenar operaciones funcionales sucesivas
+mi_tabla_analizada = mi_tabla_base
+    |> purgar donde escudos > 100 y victorias >= 3
+    |> forjar rango_combate = escudos + victorias * 15
+    |> ordenar por rango_combate descendente
+    |> revelar [ identificador, modelo, faccion, rango_combate ]
+
+// Demostracion de inmutabilidad:
+// 'mi_tabla_base' permanece intacta con todas sus columnas y filas originales.
+// 'mi_tabla_analizada' es un nuevo objeto con las transformaciones aplicadas.
+transmitir mi_tabla_analizada
+```
+*Explicación del ejemplo:*  
+- `mi_tabla_base`: Variable original que no sufre ninguna alteración (inmutabilidad).  
+- `purgar`: Filtra las filas según la condición booleana.  
+- `forjar`: Agrega la columna calculada `rango_combate`.  
+- `ordenar`: Ordena las filas de mayor a menor según el rango.  
+- `revelar`: Conserva únicamente las 4 columnas de interés.
+
+#### Ejemplo de Agrupamiento y Resumen Estadístico:
+```holocron
+mi_censo = abrir_holocron "datos/censo.csv"
+
+mi_resumen_planetas = mi_censo
+    |> agrupar por [ sector ]
+    |> resumir [
+        total_mundos = recuento(),
+        poblacion_total = acumular(poblacion),
+        poblacion_promedio = equilibrio(poblacion),
+        max_poblacion = cenit(poblacion)
+    ]
+    |> ordenar por poblacion_total descendente
+
+transmitir mi_resumen_planetas
+```
+*Explicación del ejemplo:*  
+- `sector`: Columna por la cual se agrupan los planetas.  
+- `recuento()`, `acumular()`, `equilibrio()`, `cenit()`: Funciones aplicadas a cada sector.  
+- `mi_resumen_planetas`: Tabla final condensada que contiene un registro por cada sector distinto.
+
+---
 
 ### 4.4 Motor Gráfico (`HolocronPlotter`)
 * Generación exclusiva de gráficos en formato **PNG** a 300 DPI utilizando el backend no interactivo `Agg` de Matplotlib (óptimo para entornos de consola Linux sin interfaz gráfica activa).
 * **Prohibición de SVG:** Si el usuario intenta guardar con extensión `.svg`, el sistema rechaza la operación de forma inmediata con un `HolocronSemanticError`.
 * **Estilo Visual Galáctico:** Fondo oscuro obsidiana (`#0B0E14`), ejes y rejillas tenues, paleta de colores cian (`#00E5FF`) y ámbar (`#FFB300`).
-* **Tipos de Gráficas:**
+* **Tipos de Gráficas Soportadas:**
   * `barras`: Comparación categórica discreta.
-  * `lineas`: Tendencias o series de datos continuos.
+  * `lineas`: Tendencias o series temporales continuas.
   * `dispersion`: Correlación entre dos variables cuantitativas.
   * `histograma`: Distribución de frecuencias univariadas.
   * `caja`: Diagramas de caja y bigotes para análisis de dispersión y cuartiles.
+
+#### Ejemplo de Proyección de Hologramas en Código HolocronDSL:
+```holocron
+mi_tabla_naves = abrir_holocron "datos/flota.csv"
+
+// Ejemplo 1: Grafico de barras para comparar facciones
+proyectar_holograma barras mi_tabla_naves [
+    eje_x = "faccion",
+    eje_y = "victorias",
+    titulo = "Total de Victorias por Faccion",
+    guardar = "salidas/grafica_barras_faccion.png"
+]
+
+// Ejemplo 2: Grafico de dispersion para correlacionar escudos vs victorias
+proyectar_holograma dispersion mi_tabla_naves [
+    eje_x = "escudos",
+    eje_y = "victorias",
+    titulo = "Correlacion entre Escudos y Victorias",
+    guardar = "salidas/grafica_dispersion_defensa.png"
+]
+
+// Ejemplo 3: Histograma para analizar la distribucion de escudos
+proyectar_holograma histograma mi_tabla_naves [
+    eje_x = "escudos",
+    titulo = "Distribucion de Frecuencia de Escudos",
+    guardar = "salidas/grafica_histograma_escudos.png"
+]
+```
+*Explicación del ejemplo:*  
+- Cada llamada a `proyectar_holograma` lee la tabla indicada en el segundo argumento (`mi_tabla_naves`).  
+- Los parámetros entre corchetes especifican qué columnas mapear a cada eje y el título.  
+- El archivo resultante se guarda en disco en formato `.png` en la ruta especificada en `guardar`.  
+- El sistema imprime en la consola la confirmación con la ruta absoluta donde quedó guardada la imagen.
 
 ---
 
