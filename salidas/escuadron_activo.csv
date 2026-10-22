@@ -1,0 +1,10 @@
+identificador,modelo,faccion,escudos,victorias,indice_ataque
+ISD-01,Imperial Star Destroyer,Imperio,5000,120,1200
+MF-001,YT-1300 Millennium,Independiente,200,45,450
+SL-001,Firespray Slave I,Independiente,180,30,300
+TIE-003,TIE Defender,Imperio,120,18,180
+XW-102,X-Wing T-70,Alianza,110,15,150
+XW-101,X-Wing T-65,Alianza,100,12,120
+AW-301,A-Wing RZ-1,Alianza,70,9,90
+YW-201,Y-Wing BTL,Alianza,150,8,80
+TIE-002,TIE Interceptor,Imperio,40,7,70

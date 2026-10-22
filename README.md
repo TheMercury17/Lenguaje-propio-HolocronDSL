@@ -259,7 +259,7 @@ A continuacion se presenta la totalidad del lexico reservado de HolocronDSL, cla
 
 ```text
 Lenguaje propio/
-├── Makefile                        # Automatizacion de tareas y pruebas
+├── Makefile                        # Automatizacion de tareas, pruebas y ejecucion
 ├── run_tests.py                    # Gestor multiplataforma de pruebas unitarias
 ├── .gitignore                      # Exclusion de archivos temporales y caches
 ├── README.md                       # Documentacion principal del proyecto
@@ -271,31 +271,60 @@ Lenguaje propio/
 │   ├── catalogo_instrucciones.md   # Catalogo de palabras reservadas y semantica
 │   ├── gramatica_ebnf.md           # Gramatica formal en notacion EBNF
 │   ├── manual_programacion.md      # Manual tutorial intuitivo para principiantes
-│   └── piedra_rosetta.md           # Matriz exhaustiva de equivalencias y traduccion
-├── holocron.py                     # Lanzador rapido en la raiz del proyecto
+│   ├── piedra_rosetta.md           # Matriz exhaustiva de equivalencias y traduccion
+│   └── reglas_semanticas.md        # Especificacion formal de reglas semanticas y motores
+├── holocron.py                     # Lanzador e interprete rapido en la raiz
 ├── src/
 │   ├── __init__.py
-│   ├── cli.py                      # Punto de entrada por linea de comandos
+│   ├── cli.py                      # Punto de entrada por linea de comandos e interprete
 │   ├── compiler/
 │   │   ├── __init__.py
 │   │   └── driver.py               # Fachada de tokenizacion, parseo y formato de arbol
 │   ├── errors/
 │   │   ├── __init__.py
-│   │   └── error_listener.py       # Manejador de errores lexicos y sintacticos con linea/columna
-│   └── generated/                  # Modulos generados por ANTLR4 (Lexer, Parser, Visitor)
+│   │   ├── error_listener.py       # Errores lexicos y sintacticos con linea/columna
+│   │   └── semantic_error.py       # Jerarquia de errores semanticos y diagnostico
+│   ├── generated/                  # Modulos generados por ANTLR4 (Lexer, Parser, Visitor)
+│   ├── interpreter/                # Motor de ejecucion semantica
+│   │   ├── __init__.py
+│   │   ├── symbol_table.py         # Tabla de simbolos y gestion de ambitos (scopes)
+│   │   └── visitor.py              # Interprete evaluador basado en patron Visitor
+│   └── runtime/                    # Bibliotecas propias del lenguaje
+│       ├── __init__.py
+│       ├── holocron_table.py       # Estructura tabular inmutable (HolocronTable)
+│       ├── io_engine.py            # Motor propio de I/O de archivos CSV (HolocronIO)
+│       ├── math_engine.py          # Biblioteca de calculo matematico/estadistico (HolocronMath)
+│       └── graphics_engine.py      # Motor de renderizado PNG galactico sin SVG (HolocronPlotter)
 ├── examples/
 │   ├── datos/
 │   │   └── telemetria_flota.csv    # Conjunto de datos de prueba
 │   ├── 01_telemetria_cazas.holo    # Flujo basico de carga, seleccion, filtro y archivado
 │   ├── 02_censo_galactico.holo     # Agrupamiento por faccion y funciones estadisticas
-│   ├── 03_proyeccion_holografica.holo # Bloques declarativos de graficos holograficos
+│   ├── 03_proyeccion_holografica.holo # Bloques declarativos de graficos holograficos PNG
 │   ├── 04_mision_avanzada.holo     # Abstraccion con misiones y evaluacion condicional
 │   └── 05_proyecto_completo.holo   # Flujo tactico integral paso a paso
+├── salidas/                        # Artefactos reales generados por el interprete
+│   ├── flota_operativa.csv
+│   ├── resumen_facciones.csv
+│   ├── escuadron_aprobado.csv
+│   ├── escuadron_activo.csv
+│   ├── resumen_estrategico.csv
+│   ├── victorias_por_faccion.png
+│   ├── escudos_vs_victorias.png
+│   ├── distribucion_escudos.png
+│   └── naves_operativas.png
 └── tests/
     ├── __init__.py
     ├── test_lexer.py               # Pruebas unitarias de tokens y terminales
-    ├── test_parser_valid.py        # Pruebas sintacticas positivas y verificacion de ejemplos
-    └── test_parser_invalid.py      # Pruebas sintacticas negativas y reporte de errores
+    ├── test_parser_valid.py        # Pruebas sintacticas positivas
+    ├── test_parser_invalid.py      # Pruebas sintacticas negativas
+    ├── test_math_engine.py         # Pruebas de algoritmos de HolocronMath
+    ├── test_io_engine.py           # Pruebas de parser/serializador de HolocronIO
+    ├── test_holocron_table.py      # Pruebas de operaciones tabulares inmutables
+    ├── test_symbol_table.py        # Pruebas de ambitos y tabla de simbolos
+    ├── test_semantic_errors.py     # Pruebas de deteccion de anomalias semanticas
+    ├── test_semantic_execution.py  # Pruebas de ejecucion de sentencias y pipelines
+    └── test_integration_examples.py# Pruebas integrales de los 5 programas galacticos
 ```
 
 ---
@@ -312,11 +341,18 @@ Lenguaje propio/
   - Makefile y gestor de pruebas `run_tests.py` para ejecucion general o individual.
   - 5 ejemplos galacticos documentados y suite de pruebas unitarias al 100% de aprobacion.
 
-- **Fase 2: Semantica y Procesamiento de Datos (Proxima entrega):**
-  - Implementacion del patron Visitor en Python.
-  - Tabla de simbolos y contextos de ejecucion de variables y funciones.
-  - Integracion del motor de ejecucion sobre pandas y NumPy.
+- **Fase 2: Semantica y Procesamiento de Datos con Motores Propios (Completada):**
+  - Implementacion del patron Visitor en Python (`HolocronInterpreter`).
+  - Tabla de simbolos con gestion de ambitos locales y globales (`SymbolTable` y `Scope`).
+  - Biblioteca propia de matematicas y estadistica descriptiva pura (`HolocronMath`).
+  - Biblioteca propia de lectura, inferencia de tipos y serializacion CSV (`HolocronIO`).
+  - Estructura de datos tabular inmutable (`HolocronTable` y `HolocronGroupedTable`).
+  - Motor grafico de proyeccion holografica exportando exclusivamente a **PNG** (`HolocronPlotter`), sin utilizar formato SVG.
+  - Captura y diagnostico de errores semanticos (variables inexistentes, columnas no encontradas, division por cero, tipos incompatibles, aridad de misiones).
+  - Suite de pruebas unitarias y de integracion ampliada a **59 pruebas con 100% de exito**.
+  - Ejecucion verificable de los 5 programas de ejemplo produciendo tablas CSV e imagenes PNG en `salidas/`.
+  - Documento de reglas semanticas y arquitectura en `docs/reglas_semanticas.md`.
 
-- **Fase 3: Visualizacion, Integracion y Producto Final:**
-  - Motor de visualizacion sobre Matplotlib para proyecciones graficas (PNG).
-  - Caso de estudio integral con datos reales y reporte final.
+- **Fase 3: Visualizacion Avanzada, Integracion y Producto Final:**
+  - Ampliacion de estilos graficos y metricas de correlacion/regresion opcionales.
+  - Caso de estudio integral con datos reales y reporte final de investigacion.

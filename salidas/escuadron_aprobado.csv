@@ -1,0 +1,8 @@
+identificador,modelo,faccion,escudos,hiperimpulsor,tripulantes,victorias
+ISD-01,Imperial Star Destroyer,Imperio,5000,cierto_es,37000,120
+MF-001,YT-1300 Millennium,Independiente,200,cierto_es,4,45
+SL-001,Firespray Slave I,Independiente,180,cierto_es,2,30
+TIE-003,TIE Defender,Imperio,120,cierto_es,1,18
+XW-102,X-Wing T-70,Alianza,110,cierto_es,1,15
+XW-101,X-Wing T-65,Alianza,100,cierto_es,1,12
+YW-201,Y-Wing BTL,Alianza,150,cierto_es,2,8

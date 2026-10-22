@@ -6,9 +6,12 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Salidas de generacion transitoria
-salidas/
-*.png
+# Salidas de generacion de evidencia (se preservan en el repositorio)
+!salidas/
+!salidas/*.csv
+!salidas/*.png
+
+# Documentos PDF locales
 *.pdf
 
 # Archivos de entorno y configuracion local

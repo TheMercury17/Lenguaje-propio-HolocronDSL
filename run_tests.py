@@ -108,6 +108,31 @@ def compilar_gramatica() -> bool:
         return False
 
 
+def ejecutar_ejemplos_completos() -> bool:
+    """Ejecuta los programas .holo produciendo los archivos CSV y PNG en salidas/."""
+    print("\n" + "=" * 60)
+    print("Ejecutando programas de ejemplo (.holo) produciendo salidas")
+    print("=" * 60)
+    carpeta_ejemplos = ROOT_DIR / "examples"
+    archivos = sorted(carpeta_ejemplos.glob("*.holo"))
+    if not archivos:
+        print("No se encontraron archivos de ejemplo.")
+        return False
+
+    todos_validos = True
+    for archivo in archivos:
+        cmd = [sys.executable, str(ROOT_DIR / "src" / "cli.py"), str(archivo)]
+        resultado = subprocess.run(cmd, capture_output=True, text=True)
+        if resultado.returncode == 0:
+            print(f"  [OK]  {archivo.name} ejecutado con exito.")
+        else:
+            print(f"  [FALLO] {archivo.name}")
+            print(resultado.stderr or resultado.stdout)
+            todos_validos = False
+
+    return todos_validos
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Gestor de Pruebas y Tareas para HolocronDSL",
@@ -116,14 +141,17 @@ def main():
     parser.add_argument("--lexer", action="store_true", help="Ejecuta unicamente las pruebas del analizador lexico")
     parser.add_argument("--parser", action="store_true", help="Ejecuta unicamente las pruebas sintacticas positivas")
     parser.add_argument("--invalid", action="store_true", help="Ejecuta unicamente las pruebas sintacticas negativas")
-    parser.add_argument("--examples", action="store_true", help="Verifica todos los programas de ejemplo en examples/")
+    parser.add_argument("--engines", action="store_true", help="Ejecuta pruebas de bibliotecas propias (Math, IO, Table)")
+    parser.add_argument("--semantic", action="store_true", help="Ejecuta pruebas semanticas y de tabla de simbolos")
+    parser.add_argument("--examples", action="store_true", help="Verifica la sintaxis de ejemplos en examples/")
+    parser.add_argument("--run", action="store_true", help="Ejecuta los ejemplos generando artefactos en salidas/")
     parser.add_argument("--grammar", action="store_true", help="Compila la gramatica ANTLR4")
     parser.add_argument("--all", action="store_true", help="Ejecuta todas las pruebas unitarias y verifica ejemplos")
 
     args = parser.parse_args()
 
     # Si no se indica opcion, ejecutar todas las pruebas unitarias
-    if not (args.lexer or args.parser or args.invalid or args.examples or args.grammar or args.all):
+    if not (args.lexer or args.parser or args.invalid or args.engines or args.semantic or args.examples or args.run or args.grammar or args.all):
         exito = ejecutar_todos_los_tests()
         sys.exit(0 if exito else 1)
 
@@ -136,10 +164,24 @@ def main():
         exito = ejecutar_modulo_pruebas("tests.test_parser_valid") and exito
     if args.invalid:
         exito = ejecutar_modulo_pruebas("tests.test_parser_invalid") and exito
+    if args.engines:
+        exito = (
+            ejecutar_modulo_pruebas("tests.test_math_engine") and
+            ejecutar_modulo_pruebas("tests.test_io_engine") and
+            ejecutar_modulo_pruebas("tests.test_holocron_table")
+        ) and exito
+    if args.semantic:
+        exito = (
+            ejecutar_modulo_pruebas("tests.test_symbol_table") and
+            ejecutar_modulo_pruebas("tests.test_semantic_errors") and
+            ejecutar_modulo_pruebas("tests.test_semantic_execution")
+        ) and exito
     if args.examples:
         exito = verificar_ejemplos() and exito
+    if args.run:
+        exito = ejecutar_ejemplos_completos() and exito
     if args.all:
-        exito = ejecutar_todos_los_tests() and verificar_ejemplos() and exito
+        exito = ejecutar_todos_los_tests() and verificar_ejemplos() and ejecutar_ejemplos_completos() and exito
 
     sys.exit(0 if exito else 1)
 
