@@ -41,24 +41,271 @@ El archivo `src/grammar/HolocronDSL.g4` define las reglas léxicas mediante expr
   * De línea única: `// comentario -> skip`
   * De bloque multilínea: `/* comentario */ -> skip`
 
-#### Categorías Principales de Tokens
-1. **Palabras Reservadas de Ingestión y E/S:** `abrir_holocron`, `delimitado_por`, `archivar_holocron`, `en`, `proyectar_holograma`, `transmitir`.
-2. **Palabras Reservadas de Transformación:** `revelar`, `purgar`, `donde`, `forjar`, `ordenar`, `por`, `ascendente`, `descendente`, `eliminar_clones`, `sanar_vacios`, `descartar`, `con`, `agrupar`, `resumir`.
-3. **Funciones de Agregación:** `recuento`, `conteo`, `acumular`, `suma`, `equilibrio`, `promedio`, `mediana`, `cenit`, `maximo`, `nadir`, `minimo`, `desviacion`.
-4. **Estructuras de Control y Funciones:** `mision`, `fin_mision`, `retornar`, `evaluar_fuerza`, `senda_luminosa`, `senda_oscura`, `fin_evaluar`.
-5. **Operadores y Conectores:**
-   * Pipeline: `|>`
-   * Asignación: `=`
-   * Aritméticos: `+`, `-`, `*`, `/`, `%`, `^`
-   * Relacionales: `==`, `!=`, `<`, `<=`, `>`, `>=`
-   * Lógicos: `y`, `o`, `no`
-6. **Literales y Tipos:**
-   * Booleanos: `cierto_es`, `falso_es`, `verdadero`, `falso`
-   * Nulo: `nulo`
-   * Enteros: secuencias numéricas sin punto (`[0-9]+`)
-   * Decimales: secuencias con punto flotante (`[0-9]+ '.' [0-9]+`)
-   * Cadenas de texto: delimitadas por comillas dobles (`"..."`) con soporte para escape de caracteres (`\"`, `\\`, `\n`, `\t`).
-   * Identificadores (`ID`): `[a-zA-Z_][a-zA-Z0-9_]*`
+#### Categorías Principales de Tokens (Con Uso, Contexto y Ejemplos Explícitos)
+
+##### 1. Palabras Reservadas de Ingestión y Entrada/Salida
+* **`abrir_holocron`** *(Carga un archivo CSV desde disco a la memoria como un conjunto de datos tabular inmutable)*.  
+  Se utiliza como la expresión base al inicio de un pipeline o asignado a una variable.
+  ```holocron
+  mi_tabla = abrir_holocron "datos/flota.csv"
+  ```
+  *Explicación del ejemplo:*  
+  - La variable receptora se llama `mi_tabla` y almacenará los datos cargados en memoria.  
+  - `"datos/flota.csv"` es la ruta del archivo que se va a leer.
+
+* **`delimitado_por`** *(Especifica el caracter que separa los campos en el archivo de texto, por defecto es la coma `,`)*.  
+  Se utiliza como modificador opcional inmediatamente después de la ruta del archivo.
+  ```holocron
+  mi_tabla_separada = abrir_holocron "datos/censo.csv" delimitado_por ";"
+  ```
+  *Explicación del ejemplo:*  
+  - La variable se llama `mi_tabla_separada`.  
+  - `delimitado_por ";"` le indica al lector que las columnas están separadas por punto y coma en vez de coma.
+
+* **`archivar_holocron`** *(Exporta y persiste una tabla en disco en formato CSV o en hoja de cálculo de Excel `.xls`)*.  
+  Se utiliza como una sentencia de exportación al final de los análisis.
+  ```holocron
+  archivar_holocron mi_tabla_final en "salidas/reporte_flota.xls"
+  ```
+  *Explicación del ejemplo:*  
+  - `archivar_holocron`: Palabra clave de guardado.  
+  - `mi_tabla_final`: Nombre de la variable que contiene la tabla con los datos a exportar.  
+  - `en`: Conector sintáctico obligatorio.  
+  - `"salidas/reporte_flota.xls"`: Ruta de destino. Al terminar en `.xls`, el sistema genera automáticamente una hoja de cálculo nativa de Excel compatible con LibreOffice Calc.
+
+* **`en`** *(Conector sintáctico obligatorio que introduce la ruta de archivo para `archivar_holocron`)*.
+
+* **`proyectar_holograma`** *(Genera un gráfico visual y lo guarda en disco en formato de imagen PNG a 300 DPI)*.  
+  Se utiliza como una sentencia para crear visualizaciones (`barras`, `lineas`, `dispersion`, `histograma`, `caja`).
+  ```holocron
+  proyectar_holograma barras mi_tabla_grafica [
+      eje_x = "faccion",
+      eje_y = "victorias",
+      titulo = "Total de Victorias por Faccion",
+      guardar = "salidas/grafica_barras.png"
+  ]
+  ```
+  *Explicación del ejemplo:*  
+  - `barras`: Es el tipo de gráfico elegido.  
+  - `mi_tabla_grafica`: Es la variable que contiene los datos a graficar.  
+  - `eje_x = "faccion"`: Columna categórica para el eje horizontal.  
+  - `eje_y = "victorias"`: Columna numérica para las alturas.  
+  - `guardar`: Ruta de destino obligatoriamente en formato `.png` (el lenguaje rechaza `.svg`).
+
+* **`transmitir`** *(Emite e imprime en la consola o terminal el contenido tabular, numérico o textual)*.  
+  Se utiliza para mostrar resultados al usuario en pantalla.
+  ```holocron
+  transmitir "Mostrando registros aprobados:"
+  transmitir mi_tabla_filtrada
+  ```
+  *Explicación del ejemplo:*  
+  - La primera línea imprime el mensaje literal en la terminal.  
+  - La segunda línea imprime la tabla `mi_tabla_filtrada` formateada visualmente con columnas y cuadrículas en texto plano ASCII.
+
+---
+
+##### 2. Palabras Reservadas de Transformación (Operaciones del Pipeline)
+* **`revelar`** *(Selecciona únicamente las columnas indicadas y descarta las que no estén en la lista)*.  
+  Se usa después del operador `|>` con una lista de nombres de columnas entre corchetes `[ ... ]`.
+  ```holocron
+  mi_tabla_reducida = mi_tabla |> revelar [ columna_id, columna_escudos, columna_victorias ]
+  ```
+  *Explicación del ejemplo:*  
+  - La variable original es `mi_tabla`.  
+  - La nueva variable resultante es `mi_tabla_reducida`.  
+  - `columna_id`, `columna_escudos` y `columna_victorias` son los nombres exactos de las columnas que se conservarán; cualquier otra columna de la tabla original queda descartada.
+
+* **`purgar`** *(Filtra horizontalmente las filas de la tabla según una condición lógica booleana)*.  
+  Se usa después del operador `|>` acompañado obligatoriamente de la palabra `donde`.
+  ```holocron
+  mi_tabla_filtrada = mi_tabla |> purgar donde columna_escudos > 100 y columna_victorias >= 5
+  ```
+  *Explicación del ejemplo:*  
+  - La nueva variable es `mi_tabla_filtrada`.  
+  - Solo se mantendrán las filas donde el valor de `columna_escudos` sea estrictamente mayor a 100 y `columna_victorias` sea mayor o igual a 5.
+
+* **`donde`** *(Conector gramatical obligatorio que enlaza la instrucción `purgar` con la condición lógica a evaluar)*.
+
+* **`forjar`** *(Crea una nueva columna calculada a partir de fórmulas aritméticas sobre columnas existentes)*.  
+  Se usa después del operador `|>` con la sintaxis: `forjar nombre_nueva_columna = expresion`.
+  ```holocron
+  mi_tabla_calculada = mi_tabla |> forjar columna_poder = columna_escudos + columna_victorias * 10
+  ```
+  *Explicación del ejemplo:*  
+  - La nueva variable resultante se llama `mi_tabla_calculada`.  
+  - `columna_poder` es el nombre de la nueva columna creada.  
+  - El valor de `columna_poder` se calcula fila por fila multiplicando `columna_victorias` por 10 y sumándole `columna_escudos`.
+
+* **`ordenar`** *(Ordena las filas de la tabla según el valor de una columna elegida)*.  
+  Se usa después del operador `|>` acompañado obligatoriamente del conector `por`.
+  ```holocron
+  mi_tabla_ordenada = mi_tabla |> ordenar por columna_victorias descendente
+  ```
+  *Explicación del ejemplo:*  
+  - La variable resultante se llama `mi_tabla_ordenada`.  
+  - `columna_victorias` es la columna utilizada como criterio de ordenación.  
+  - `descendente` indica que las filas con más victorias aparecerán primero (de mayor a menor). Si se omite, el orden es ascendente por defecto.
+
+* **`por`** *(Conector gramatical obligatorio utilizado en `ordenar por` y en `agrupar por`)*.
+
+* **`ascendente`** *(Modificador opcional en `ordenar por` para ordenar de menor a mayor o alfabéticamente de la A a la Z)*.
+
+* **`descendente`** *(Modificador en `ordenar por` para ordenar de mayor a menor o alfabéticamente de la Z a la A)*.
+
+* **`eliminar_clones`** *(Busca y elimina todas las filas duplicadas que tengan exactamente los mismos valores en todas sus columnas)*.  
+  Se usa después del operador `|>`.
+  ```holocron
+  mi_tabla_sin_duplicados = mi_tabla |> eliminar_clones
+  ```
+  *Explicación del ejemplo:*  
+  - `mi_tabla_sin_duplicados` contendrá únicamente registros únicos.
+
+* **`sanar_vacios`** *(Detecta celdas vacías o nulas (`None`/`nulo`) y las procesa según la estrategia elegida)*.  
+  Se usa después del operador `|>` con una de dos opciones: `descartar` o `con <valor>`.
+  ```holocron
+  // Opcion 1: Descartar filas incompletas
+  mi_tabla_limpia = mi_tabla |> sanar_vacios descartar
+
+  // Opcion 2: Rellenar celdas vacias con un valor por defecto
+  mi_tabla_rellena = mi_tabla |> sanar_vacios con 0
+  ```
+  *Explicación del ejemplo:*  
+  - Con `descartar`, cualquier fila con al menos un campo nulo es borrada.  
+  - Con `con 0`, las celdas nulas se reemplazan por el número `0`.
+
+* **`descartar`** *(Opción de `sanar_vacios` para borrar las filas que tengan celdas vacías)*.
+
+* **`con`** *(Opción de `sanar_vacios` para sustituir los valores vacíos por el valor que se escriba a continuación)*.
+
+* **`agrupar`** *(Segmenta la tabla en subgrupos de filas que compartan los mismos valores en las columnas especificadas)*.  
+  Se usa después del operador `|>` con la sintaxis: `agrupar por [ columna_clave ]`.
+  ```holocron
+  mis_grupos = mi_tabla |> agrupar por [ columna_faccion ]
+  ```
+  *Explicación del ejemplo:*  
+  - La variable `mis_grupos` almacena la tabla segmentada (`HolocronGroupedTable`), lista para aplicar funciones estadísticas sobre cada facción.
+
+* **`resumir`** *(Calcula métricas estadísticas agregadas sobre los grupos creados o sobre la tabla entera)*.  
+  Se usa después del operador `|>` recibiendo una lista de asignaciones de funciones de agregación.
+  ```holocron
+  mi_resumen = mi_tabla
+      |> agrupar por [ columna_faccion ]
+      |> resumir [
+          columna_total_naves = recuento(),
+          columna_media_escudos = equilibrio(columna_escudos),
+          columna_max_victorias = cenit(columna_victorias)
+      ]
+  ```
+  *Explicación del ejemplo:*  
+  - La variable resultante se llama `mi_resumen`.  
+  - Cada facción tendrá una fila en la nueva tabla.  
+  - `columna_total_naves` contendrá cuántas naves tiene esa facción (`recuento()`).  
+  - `columna_media_escudos` contendrá el promedio de escudos (`equilibrio(...)`).  
+  - `columna_max_victorias` contendrá el valor máximo de victorias registrado (`cenit(...)`).
+
+---
+
+##### 3. Funciones de Agregación (Usadas exclusivamente dentro de `resumir`)
+* **`recuento()`** / **`conteo()`** *(Cuenta cuántas filas pertenecen a cada grupo. No necesita columna obligatoria)*.  
+  Ejemplo: `conteo_filas = recuento()`
+* **`acumular(columna)`** / **`suma(columna)`** *(Calcula la sumatoria total de los valores numéricos de una columna en cada grupo)*.  
+  Ejemplo: `suma_puntos = acumular(columna_puntos)`
+* **`equilibrio(columna)`** / **`promedio(columna)`** *(Calcula el promedio o media aritmética de los valores de una columna)*.  
+  Ejemplo: `promedio_edad = equilibrio(columna_edad)`
+* **`mediana(columna)`** *(Calcula el valor central que divide la muestra en dos partes iguales)*.  
+  Ejemplo: `mediana_salario = mediana(columna_salario)`
+* **`cenit(columna)`** / **`maximo(columna)`** *(Encuentra el valor numérico más alto o tope superior de la columna)*.  
+  Ejemplo: `record_maximo = cenit(columna_puntaje)`
+* **`nadir(columna)`** / **`minimo(columna)`** *(Encuentra el valor numérico más bajo o piso inferior de la columna)*.  
+  Ejemplo: `costo_minimo = nadir(columna_costo)`
+* **`desviacion(columna)`** *(Calcula la desviación estándar de la columna para medir qué tan dispersos están los datos)*.  
+  Ejemplo: `dispersion = desviacion(columna_tiempo)`
+
+---
+
+##### 4. Estructuras de Control y Funciones
+* **`mision`**, **`fin_mision`**, **`retornar`** *(Declaran y delimitan una función reutilizable con parámetros y ámbito léxico local propio)*.  
+  ```holocron
+  mision mi_calculo(parametro_base, parametro_extra)
+      variable_local = parametro_base * 2
+      resultado_final = variable_local + parametro_extra
+      retornar resultado_final
+  fin_mision
+
+  mi_variable_global = mi_calculo(50, 10)
+  ```
+  *Explicación del ejemplo:*  
+  - `mi_calculo`: Nombre de la función (misión).  
+  - `parametro_base` y `parametro_extra`: Entradas de la función.  
+  - `variable_local`: Solo existe dentro de la misión (ámbito local).  
+  - `retornar resultado_final`: Devuelve el valor `(50 * 2) + 10 = 110`.  
+  - `mi_variable_global`: Variable en el ámbito global que recibe el número `110`.
+
+* **`evaluar_fuerza`**, **`senda_luminosa`**, **`senda_oscura`**, **`fin_evaluar`** *(Estructura condicional equivalente al `if / else` para bifurcar la ejecución según una condición lógica)*.  
+  ```holocron
+  mi_variable_estado = "desconocido"
+
+  evaluar_fuerza mi_variable_puntaje >= 70
+  senda_luminosa
+      mi_variable_estado = "Aprobado"
+      transmitir "El postulante ha superado la prueba."
+  senda_oscura
+      mi_variable_estado = "Reprobado"
+      transmitir "El postulante debe repetir la prueba."
+  fin_evaluar
+  ```
+  *Explicación del ejemplo:*  
+  - Si `mi_variable_puntaje` es mayor o igual a 70, el intérprete entra a la `senda_luminosa` y asigna `"Aprobado"`.  
+  - Si es menor a 70, el intérprete entra a la `senda_oscura` y asigna `"Reprobado"`.  
+  - `fin_evaluar` cierra el bloque condicional.
+
+---
+
+##### 5. Operadores y Conectores
+* **`|>` (Pipeline Hiperespacial):** *(Pasa el resultado de la expresión izquierda como entrada directa a la operación derecha)*.  
+  Ejemplo: `mi_tabla |> purgar donde columna_edad >= 18`
+* **`=` (Asignación):** *(Asigna un valor evaluado a la variable que se encuentra a la izquierda)*.  
+  Ejemplo: `mi_numero = 100`
+* **Aritméticos:**
+  - `+` *(Suma matemática o concatenación de textos si hay cadenas involucradas)*:  
+    `resultado_suma = 15 + 5` (da 20) | `saludo = "Hola " + "Galaxia"` (da "Hola Galaxia")
+  - `-` *(Resta matemática)*: `resultado_resta = 20 - 8` (da 12)
+  - `*` *(Multiplicación matemática)*: `resultado_multiplicacion = 6 * 7` (da 42)
+  - `/` *(División matemática protegida contra división por cero)*: `resultado_division = 50 / 2` (da 25.0)
+  - `%` *(Módulo o residuo de la división entera)*: `resultado_modulo = 10 % 3` (da 1)
+  - `^` *(Potenciación o exponente)*: `resultado_potencia = 2 ^ 3` (da 8)
+* **Relacionales (Comparación):**
+  - `==` *(Igual que)*: `columna_tipo == "Caza"`
+  - `!=` *(Diferente de)*: `columna_faccion != "Pirata"`
+  - `<` *(Menor estricto que)*: `columna_escudos < 50`
+  - `<=` *(Menor o igual que)*: `columna_tripulantes <= 2`
+  - `>` *(Mayor estricto que)*: `columna_victorias > 10`
+  - `>=` *(Mayor o igual que)*: `columna_velocidad >= 800`
+* **Lógicos (Conectores booleanos):**
+  - `y` *(AND lógico: se cumple solo si ambas condiciones son ciertas)*:  
+    `columna_escudos > 50 y columna_victorias > 2`
+  - `o` *(OR lógico: se cumple si al menos una de las dos condiciones es cierta)*:  
+    `columna_faccion == "Imperio" o columna_faccion == "Rebelion"`
+  - `no` *(NOT lógico: invierte el valor de verdad de la condición)*:  
+    `no (columna_escudos == 0)`
+
+---
+
+##### 6. Literales y Tipos de Datos Atómicos
+* **`cierto_es`** / **`verdadero`**: *(Literal booleano que representa el valor de verdad `True`)*.  
+  Ejemplo: `mi_interruptor = cierto_es`
+* **`falso_es`** / **`falso`**: *(Literal booleano que representa la falsedad `False`)*.  
+  Ejemplo: `mi_interruptor = falso_es`
+* **`nulo`**: *(Literal que representa ausencia de dato o valor desconocido `None`)*.  
+  Ejemplo: `mi_dato_vacio = nulo`
+* **Enteros (`int`):** Números enteros positivos o negativos sin decimales.  
+  Ejemplo: `mi_contador = 42`
+* **Decimales (`float`):** Números con punto flotante.  
+  Ejemplo: `mi_decimal = 3.1416`
+* **Cadenas de texto (`str`):** Textos encerrados entre comillas dobles `"..."`.  
+  Ejemplo: `mi_texto = "Estacion Espacial"`
+* **Identificadores (`ID`):** Nombres asignados a variables, columnas o funciones creadas por el programador.  
+  Ejemplos: `mi_tabla`, `total_victorias`, `mi_mision_1`.
 
 ### 2.2 El Analizador Sintáctico (Parser) y Gramática Formal
 El parser valida que la secuencia de tokens respete las reglas gramaticales libres de contexto (EBNF).
