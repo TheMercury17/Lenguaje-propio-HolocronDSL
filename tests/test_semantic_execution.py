@@ -83,6 +83,25 @@ class TestSemanticExecution(unittest.TestCase):
         facciones = [f["faccion"] for f in tabla.filas]
         self.assertTrue(all(fac == "Imperio" for fac in facciones))
 
+    def test_archivar_holocron_a_excel_xls(self):
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            ruta_destino = (Path(tmp_dir) / "carpeta_salida" / "flota_exportada.xls").as_posix()
+            codigo = f"""
+            datos = abrir_holocron "examples/datos/telemetria_flota.csv"
+            resumen = datos |> revelar [ identificador, faccion, victorias ]
+            archivar_holocron resumen en "{ruta_destino}"
+            """
+            interp = self._interpretar(codigo)
+            self.assertEqual(len(interp.archivos_generados), 1)
+            archivo_gen = Path(interp.archivos_generados[0])
+            self.assertTrue(archivo_gen.is_file())
+            self.assertTrue(archivo_gen.name.endswith(".xls"))
+            contenido = archivo_gen.read_text(encoding="utf-8")
+            self.assertIn("Excel.Sheet", contenido)
+            self.assertIn("identificador", contenido)
+
 
 if __name__ == "__main__":
     unittest.main()

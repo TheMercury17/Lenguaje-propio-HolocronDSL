@@ -53,6 +53,28 @@ class TestHolocronIO(unittest.TestCase):
         with self.assertRaises(ArchivoNoEncontradoError):
             HolocronIO.leer_csv("ruta_fantasma_no_existe.csv")
 
+    def test_escritura_excel_xls_y_directorios_anidados(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Crear ruta anidada en subcarpeta que no existia previamente
+            ruta_xls = Path(tmp_dir) / "subcarpeta" / "otra_mas" / "reporte.xls"
+            cols = ["nave", "velocidad", "hiperpropulsion"]
+            filas = [
+                {"nave": "Halcón Milenario", "velocidad": 1050, "hiperpropulsion": True},
+                {"nave": "Esclavo I", "velocidad": 1000, "hiperpropulsion": True},
+                {"nave": "Lanzadera Imperial", "velocidad": 850, "hiperpropulsion": False}
+            ]
+
+            ruta_resultante = HolocronIO.escribir_excel_xls(str(ruta_xls), cols, filas)
+            self.assertTrue(ruta_xls.is_file())
+            self.assertEqual(ruta_resultante, str(ruta_xls.resolve()))
+
+            # Verificar que sea un XML Spreadsheet valido
+            contenido = ruta_xls.read_text(encoding="utf-8")
+            self.assertIn('<?xml version="1.0" encoding="UTF-8"?>', contenido)
+            self.assertIn('xmlns="urn:schemas-microsoft-com:office:spreadsheet"', contenido)
+            self.assertIn('<Cell><Data ss:Type="String">Halcón Milenario</Data></Cell>', contenido)
+            self.assertIn('<Cell><Data ss:Type="Number">1050</Data></Cell>', contenido)
+
 
 if __name__ == "__main__":
     unittest.main()

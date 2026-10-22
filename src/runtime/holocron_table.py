@@ -2,6 +2,7 @@
 # Motor tabular funcional e inmutable desarrollado desde cero (Grupo 5)
 
 from typing import List, Dict, Any, Callable, Optional, Tuple, Union
+from pathlib import Path
 from src.runtime.math_engine import HolocronMath
 from src.runtime.io_engine import HolocronIO
 from src.errors.semantic_error import ColumnaInexistenteError
@@ -295,7 +296,16 @@ class HolocronTable:
             raise ValueError(f"Funcion de agregacion desconocida: '{func_nombre}'.")
 
     def archivar(self, ruta: str, delimitador: str = ",") -> str:
-        """Persiste la tabla en formato CSV utilizando la biblioteca propia HolocronIO."""
+        """
+        Persiste la tabla en disco utilizando la biblioteca propia HolocronIO.
+        Soporta de forma nativa:
+        - Excel (.xls / .xml): Formato XML Spreadsheet 2003 compatible con MS Excel y LibreOffice Calc.
+        - CSV (.csv / delimitado): Formato de texto con soporte para comillas y tipos.
+        Retorna la ruta absoluta del archivo generado.
+        """
+        ruta_path = Path(ruta)
+        if ruta_path.suffix.lower() in (".xls", ".xml"):
+            return HolocronIO.escribir_excel_xls(ruta, self.columnas, self.filas)
         return HolocronIO.escribir_csv(ruta, self.columnas, self.filas, delimitador)
 
     def a_cadena_tabular(self, max_filas: int = 15) -> str:

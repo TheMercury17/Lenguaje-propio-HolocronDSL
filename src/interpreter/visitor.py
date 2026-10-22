@@ -335,8 +335,11 @@ class HolocronInterpreter(HolocronDSLVisitor):
 
         ruta_absoluta = valor.archivar(ruta, delimitador)
         self.archivos_generados.append(ruta_absoluta)
-        if self.verbose:
-            print(f"[HolocronDSL] Holocron '{nombre_var}' archivado en: {ruta_absoluta}")
+        formato = "Excel (.xls)" if ruta_absoluta.lower().endswith((".xls", ".xml")) else "CSV"
+        print(f"[Holocron Guardado] Holocron '{nombre_var}' exportado con exito:")
+        print(f"  -> Formato: {formato}")
+        print(f"  -> Registros: {len(valor.filas)} filas | {len(valor.columnas)} columnas")
+        print(f"  -> Ubicacion absoluta: {ruta_absoluta}")
         return ruta_absoluta
 
     def visitSentenciaHolograma(self, ctx: HolocronDSLParser.SentenciaHologramaContext):
@@ -372,8 +375,9 @@ class HolocronInterpreter(HolocronDSLVisitor):
             columna=columna
         )
         self.archivos_generados.append(ruta_png)
-        if self.verbose:
-            print(f"[HolocronDSL] Proyeccion holografica PNG generada: {ruta_png}")
+        print(f"[Holograma Proyectado] Grafico PNG ({tipo_grafica}) generado con exito:")
+        print(f"  -> Titulo: {propiedades.get('titulo', 'Sin titulo')}")
+        print(f"  -> Ubicacion absoluta: {ruta_png}")
         return ruta_png
 
     # -------------------------------------------------------------------------

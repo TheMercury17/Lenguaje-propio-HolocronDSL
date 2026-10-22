@@ -167,3 +167,67 @@ class HolocronIO:
                 f.write(delimitador.join(campos_serializados) + "\n")
 
         return str(path_archivo.resolve())
+
+    @classmethod
+    def escribir_excel_xls(
+        cls,
+        ruta: str,
+        columnas: List[str],
+        registros: List[Dict[str, Any]]
+    ) -> str:
+        """
+        Serializa la tabla en formato nativo XML Spreadsheet 2003 (.xls).
+        Permite que Microsoft Excel y LibreOffice Calc (en Kali Linux) abran el archivo
+        directamente como una hoja de calculo con celdas y tipos formateados,
+        sin requerir librerias externas pesadas.
+        """
+        path_archivo = Path(ruta)
+        if path_archivo.parent:
+            path_archivo.parent.mkdir(parents=True, exist_ok=True)
+
+        lineas = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<?mso-application progid="Excel.Sheet"?>',
+            '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"',
+            ' xmlns:o="urn:schemas-microsoft-com:office:office"',
+            ' xmlns:x="urn:schemas-microsoft-com:office:excel"',
+            ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"',
+            ' xmlns:html="http://www.w3.org/TR/REC-html40">',
+            ' <Worksheet ss:Name="Holocron">',
+            '  <Table>'
+        ]
+
+        # Fila de encabezados
+        lineas.append('   <Row>')
+        for col in columnas:
+            col_escapada = str(col).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            lineas.append(f'    <Cell><Data ss:Type="String">{col_escapada}</Data></Cell>')
+        lineas.append('   </Row>')
+
+        # Filas de datos
+        for fila in registros:
+            lineas.append('   <Row>')
+            for col in columnas:
+                val = fila.get(col, None)
+                if val is None:
+                    lineas.append('    <Cell><Data ss:Type="String"></Data></Cell>')
+                elif isinstance(val, bool):
+                    txt_bool = "cierto_es" if val else "falso_es"
+                    lineas.append(f'    <Cell><Data ss:Type="String">{txt_bool}</Data></Cell>')
+                elif isinstance(val, (int, float)):
+                    lineas.append(f'    <Cell><Data ss:Type="Number">{val}</Data></Cell>')
+                else:
+                    txt = str(val).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                    lineas.append(f'    <Cell><Data ss:Type="String">{txt}</Data></Cell>')
+            lineas.append('   </Row>')
+
+        lineas.extend([
+            '  </Table>',
+            ' </Worksheet>',
+            '</Workbook>'
+        ])
+
+        with open(path_archivo, "w", encoding="utf-8") as f:
+            f.write("\n".join(lineas) + "\n")
+
+        return str(path_archivo.resolve())
