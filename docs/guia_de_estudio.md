@@ -806,3 +806,131 @@ A continuación se presentan las preguntas más probables que el profesor puede 
   ```bash
   python3 holocron.py examples/01_telemetria_cazas.holo --tree
   ```
+
+---
+
+## 8. Hoja de Comandos Rápidos de Terminal para la Sustentación (Linux / Kali)
+
+### 8.1 Visualización de la Gramática Formal (.g4) en Consola
+Para mostrar la gramática ANTLR4 directamente en la terminal:
+```bash
+# Opcion A: Ver todo el archivo continuo
+cat src/grammar/HolocronDSL.g4
+
+# Opcion B: Verlo paginado (navegar con flechas arriba/abajo, buscar con '/' y salir con 'q')
+less src/grammar/HolocronDSL.g4
+
+# Opcion C: Ver las primeras 40 lineas (reglas de tokens principales)
+head -n 40 src/grammar/HolocronDSL.g4
+
+# Opcion D: Ver con numeros de linea en pantalla
+nl -ba src/grammar/HolocronDSL.g4 | less
+```
+
+### 8.2 Edición de Archivos en la Terminal de Linux
+Para modificar ejemplos, gramática o código fuente:
+```bash
+# Editar un ejemplo especifico (.holo)
+nano examples/01_telemetria_cazas.holo
+
+# Editar la gramatica ANTLR4 (.g4)
+nano src/grammar/HolocronDSL.g4
+
+# Atajos esenciales dentro del editor nano:
+# Ctrl + O   -> Guardar cambios (presionar Enter para confirmar el nombre)
+# Ctrl + X   -> Salir del editor
+# Ctrl + W   -> Buscar una palabra o regla
+# Alt  + U   -> Deshacer ultimo cambio
+```
+
+### 8.3 Recompilación de la Gramática ANTLR4
+Si durante la sustentación el docente solicita añadir o modificar una regla en `HolocronDSL.g4`:
+```bash
+# 1. Recompilar la gramatica a codigo Python (actualiza src/generated/)
+make grammar
+
+# Equivalente manual en caso de no usar make:
+python3 -m antlr4 -Dlanguage=Python3 -visitor -no-listener -o src/generated src/grammar/HolocronDSL.g4
+```
+
+### 8.4 Ejecución de Ejemplos Puntuales con el CLI (`holocron.py`)
+```bash
+# Ejecutar normalmente un ejemplo puntual (interpreta, calcula y guarda archivos)
+python3 holocron.py examples/01_telemetria_cazas.holo
+
+# Ejecutar el ejemplo 2 (agrupamiento y estadisticas de censo)
+python3 holocron.py examples/02_censo_galactico.holo
+
+# Ejecutar el ejemplo 3 (proyeccion de graficos PNG)
+python3 holocron.py examples/03_proyeccion_holografica.holo
+
+# Ejecutar en modo detallado (muestra trazabilidad de operaciones)
+python3 holocron.py examples/01_telemetria_cazas.holo --verbose
+
+# Validar UNICAMENTE la sintaxis sin ejecutar ni modificar disco
+python3 holocron.py examples/01_telemetria_cazas.holo --check
+
+# Visualizar el Arbol de Analisis Sintactico (AST) en formato indentado
+python3 holocron.py examples/01_telemetria_cazas.holo --tree
+
+# Visualizar el AST en notacion LISP (S-Expressions)
+python3 holocron.py examples/01_telemetria_cazas.holo --lisp
+```
+
+### 8.5 Inspección y Verificación de los Archivos de Salida Generados
+Cuando el programa guarde resultados en la carpeta `salidas/`:
+```bash
+# 1. Listar los archivos generados con fechas y tamanos
+ls -la salidas/
+
+# 2. Ver el contenido de un archivo CSV generado de forma alineada en columnas
+column -t -s, salidas/flota_operativa.csv | head -n 15
+
+# 3. Ver las primeras lineas de un archivo Excel (.xls) para comprobar el encabezado XML
+head -n 20 salidas/flota_exportada.xls
+
+# 4. Abrir el archivo Excel (.xls) directamente en LibreOffice Calc (interfaz grafica)
+libreoffice salidas/flota_exportada.xls &
+
+# 5. Abrir una imagen PNG generada en el visor predeterminado de Kali Linux
+xdg-open salidas/victorias_por_faccion.png &
+# O con el visor liviano Ristretto habitual en Kali:
+ristretto salidas/victorias_por_faccion.png &
+```
+
+### 8.6 Ejecución y Revisión de Pruebas Automatizadas
+Para demostrar ante el docente que la suite de pruebas valida el sistema al 100%:
+```bash
+# Ejecutar toda la suite (61 pruebas unitarias e integrales)
+make test
+
+# Ejecutar mediante el runner propio del proyecto
+python3 run_tests.py --all
+
+# Ejecutar unicamente las pruebas del analizador lexico
+make test-lexer
+
+# Ejecutar unicamente las pruebas sintacticas validas
+make test-parser
+
+# Ejecutar unicamente las pruebas semanticas y del interprete Visitor
+make test-semantic
+
+# Ejecutar un archivo de prueba puntual directamente con unittest
+python3 -m unittest tests/test_semantic_execution.py -v
+python3 -m unittest tests/test_io_engine.py -v
+python3 -m unittest tests/test_math_engine.py -v
+```
+
+### 8.7 Gestión del Entorno Virtual en Linux
+En caso de clonar o ejecutar en una máquina virtual limpia de Kali:
+```bash
+# Activar el entorno virtual si ya esta creado
+source .venv/bin/activate
+
+# Instalar dependencias si se clono recientemente
+make install
+
+# Limpiar archivos temporales y caches de Python (__pycache__)
+make clean
+```
