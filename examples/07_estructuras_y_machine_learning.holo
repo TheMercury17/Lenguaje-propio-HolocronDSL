@@ -1,0 +1,120 @@
+-- =========================================================================
+-- Ejemplo 07: Estructuras de Datos, Bucles y Machine Learning Nativo
+-- Lenguaje: HolocronDSL
+-- Autores: Andres Sebastian Coral Vallejo, Carol Arenas Cardona
+-- =========================================================================
+
+transmitir "============================================================"
+transmitir "DEMOSTRACION 1: ARREGLOS Y LISTAS NATIVAS"
+transmitir "============================================================"
+
+-- 1. Crear una lista de 10 posiciones inicializadas en cero
+lista_diez = crear_lista(10, 0)
+transmitir "Lista dimensionada de 10 posiciones iniciales:"
+transmitir lista_diez
+
+-- 2. Modificacion mediante indexacion directa
+lista_diez[0] = 100
+lista_diez[5] = 555
+lista_diez[9] = 999
+transmitir "Lista tras modificar posiciones 0, 5 y 9:"
+transmitir lista_diez
+
+-- 3. Insercion dinamica y longitud
+agregar(lista_diez, 1000)
+tamano_final = longitud(lista_diez)
+transmitir "Longitud tras agregar elemento:"
+transmitir tamano_final
+
+
+transmitir "============================================================"
+transmitir "DEMOSTRACION 2: PILAS (LIFO) Y COLAS (FIFO)"
+transmitir "============================================================"
+
+-- Pila LIFO: Last-In, First-Out
+pila_tactica = crear_pila()
+apilar(pila_tactica, "Plan_Alfa")
+apilar(pila_tactica, "Plan_Beta")
+apilar(pila_tactica, "Plan_Gamma")
+transmitir "Estado actual de la Pila Tactica (Cima -> Base):"
+transmitir pila_tactica
+
+plan_en_cima = cima(pila_tactica)
+transmitir "Elemento en la cima de la pila:"
+transmitir plan_en_cima
+
+plan_extraido = desapilar(pila_tactica)
+transmitir "Elemento desapilado:"
+transmitir plan_extraido
+transmitir "Pila resultante tras desapilar:"
+transmitir pila_tactica
+
+-- Cola FIFO: First-In, First-Out
+hangar_cola = crear_cola()
+encolar(hangar_cola, "Caza_X-Wing_01")
+encolar(hangar_cola, "Caza_TIE_02")
+encolar(hangar_cola, "Halcon_03")
+transmitir "Estado actual de la Cola de Despegue (Frente -> Final):"
+transmitir hangar_cola
+
+caza_despegando = desencolar(hangar_cola)
+transmitir "Caza que ha despegado (desencolado):"
+transmitir caza_despegando
+transmitir "Cola resultante en el hangar:"
+transmitir hangar_cola
+
+
+transmitir "============================================================"
+transmitir "DEMOSTRACION 3: ESTRUCTURAS DE CONTROL ITERATIVAS (BUCLES)"
+transmitir "============================================================"
+
+-- Bucle mientras (While loop)
+contador = 1
+potencia = 1
+mientras (contador <= 5)
+    potencia = potencia * 2
+    contador = contador + 1
+fin_mientras
+transmitir "Resultado de 2^5 mediante bucle 'mientras':"
+transmitir potencia
+
+-- Bucle para rango (For loop con contador)
+total_acumulado = 0
+para k desde 1 hasta 10
+    total_acumulado = total_acumulado + k
+fin_para
+transmitir "Sumatoria de enteros del 1 al 10 con 'para...desde...hasta':"
+transmitir total_acumulado
+
+-- Bucle recorrer coleccion (For-each loop)
+flota_estelar = ["Destructor", "Corbeta", "Fragata", "Caza"]
+transmitir "Recorriendo lista de naves con 'recorrer item en coleccion':"
+recorrer nave en flota_estelar
+    transmitir nave
+fin_recorrer
+
+
+transmitir "============================================================"
+transmitir "DEMOSTRACION 4: MACHINE LEARNING - CLASIFICACION POR ARBOL"
+transmitir "============================================================"
+
+-- Carga del holocron de telemetria
+flota = abrir_holocron "examples/datos/telemetria_flota.csv"
+
+-- Pipeline con codificacion, agrupamiento K-Means, arbol y normalizacion
+flota_inteligente = flota
+    |> agrupar_kmeans [ k = 2, columnas = [escudos, victorias], destino = "cluster_tactico" ]
+    |> clasificar_arbol [ objetivo = "faccion", columnas = [escudos, victorias], profundidad = 3, destino = "pred_faccion" ]
+    |> normalizar_minmax [ columnas = [escudos, victorias] ]
+
+transmitir "Telemetria enriquecida con Modelos de Machine Learning (K-Means y Arbol):"
+transmitir flota_inteligente
+
+-- Evaluacion de exactitud (Accuracy)
+y_real = [1, 1, 1, 0, 0]
+y_pred = [1, 1, 0, 0, 0]
+exactitud = evaluar_exactitud(y_real, y_pred)
+transmitir "Exactitud del modelo calculada mediante 'evaluar_exactitud':"
+transmitir exactitud
+
+transmitir "Todas las demostraciones de estructuras de datos y Machine Learning han concluido exitosamente."

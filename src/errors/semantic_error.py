@@ -153,3 +153,48 @@ class OperacionInvalidaError(HolocronSemanticError):
         mensaje = f"La operacion de pipeline '{operacion}' solo puede aplicarse sobre tablas (holocrones), no sobre '{tipo_recibido}'."
         sugerencia = "Asegurese de que la base del pipeline sea un holocron cargado o transformado."
         super().__init__(mensaje, linea, columna, sugerencia)
+
+
+class IndiceFueraDeRangoError(HolocronSemanticError):
+    """Se lanza cuando se intenta acceder a una posicion inexistente dentro de un arreglo."""
+
+    def __init__(
+        self,
+        indice: int,
+        longitud: int,
+        linea: Optional[int] = None,
+        columna: Optional[int] = None
+    ):
+        mensaje = f"Indice fuera de rango: se intento acceder a la posicion {indice} en una estructura de longitud {longitud}."
+        sugerencia = f"Los indices validos se encuentran en el intervalo [0, {longitud - 1}]."
+        super().__init__(mensaje, linea, columna, sugerencia)
+
+
+class EstructuraVaciaError(HolocronSemanticError):
+    """Se lanza cuando se intenta extraer o inspeccionar un elemento de una pila o cola vacia."""
+
+    def __init__(
+        self,
+        nombre_estructura: str,
+        operacion: str,
+        linea: Optional[int] = None,
+        columna: Optional[int] = None
+    ):
+        mensaje = f"No es posible ejecutar '{operacion}' sobre una estructura '{nombre_estructura}' vacia."
+        sugerencia = "Compruebe si la estructura contiene elementos mediante 'esta_vacia()' antes de extraerlos."
+        super().__init__(mensaje, linea, columna, sugerencia)
+
+
+class ErrorModeloML(HolocronSemanticError):
+    """Se lanza ante inconsistencias en el entrenamiento o inferencia de modelos de Machine Learning."""
+
+    def __init__(
+        self,
+        modelo: str,
+        detalle: str,
+        linea: Optional[int] = None,
+        columna: Optional[int] = None,
+        sugerencia: Optional[str] = None
+    ):
+        mensaje = f"Anomalia en modelo de Machine Learning ({modelo}): {detalle}."
+        super().__init__(mensaje, linea, columna, sugerencia)

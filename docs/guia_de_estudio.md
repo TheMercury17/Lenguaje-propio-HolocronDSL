@@ -887,3 +887,198 @@ Ubicado en `examples/06_caso_estudio_final.holo`:
   3. Guardar con `Ctrl + O`, `Enter` y salir con `Ctrl + X`.
   4. Ejecutar: `python3 holocron.py examples/06_caso_estudio_final.holo`.
   5. Señalar en la consola los nuevos coeficientes calculados para el modelo ajustado y la generación exitosa de los reportes.
+
+---
+
+## 10. Estructuras de Datos Nativas y Control Iterativo (Fase 3 Ampliada)
+
+Para dar respuesta rigurosa a los requerimientos avanzados de transducción y compilación, HolocronDSL incorpora estructuras de datos lineales y jerárquicas nativas implementadas desde cero en `src/runtime/data_structures.py`, sin recurrir a bibliotecas de terceros.
+
+### 10.1 Arreglos y Listas Dimensionadas
+HolocronDSL ofrece la clase `HolocronArray`, la cual admite literales de arreglos, indexación con verificación de límites y dimensionamiento explícito:
+
+1. **Creación de listas con tamaño predeterminado (por ejemplo, 10 posiciones):**
+   ```holocron
+   mi_lista = crear_lista(10, 0)
+   transmitir mi_lista
+   ```
+   *Explicación:* Crea un arreglo de 10 posiciones inicializadas con el valor `0`: `[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]`.
+
+2. **Indexación y Asignación por Índice:**
+   Los arreglos son indexados desde `0`. Se admiten tanto lecturas como modificaciones directas por posición:
+   ```holocron
+   mi_lista[0] = 100
+   mi_lista[5] = 555
+   mi_lista[9] = 999
+   primer_elemento = mi_lista[0]
+   ```
+   *Seguridad semántica:* Si se intenta acceder a una posición fuera del rango válido (por ejemplo `mi_lista[15]`), el intérprete detiene la ejecución arrojando una excepción semántica `IndiceFueraDeRangoError` indicando el índice infractor y la longitud actual de la estructura.
+
+3. **Operaciones y Métodos Nativos de Arreglos:**
+   - `longitud(coleccion)`: Retorna la cantidad de elementos presentes.
+   - `agregar(arreglo, elemento)`: Añade un elemento al final del arreglo.
+   - `insertar(arreglo, indice, elemento)`: Inserta un elemento en una posición específica desplazando los posteriores.
+   - `remover(arreglo, indice)`: Elimina y retorna el elemento en el índice indicado.
+   - `obtener(arreglo, indice)`: Recupera el valor en el índice dado.
+   - `subarreglo(arreglo, inicio, fin)`: Retorna una nueva lista que es una rebanada desde `inicio` hasta `fin`.
+   - `invertir(arreglo)`: Retorna un nuevo arreglo con los elementos en orden inverso.
+   - `ordenar_lista(arreglo, descendente)`: Ordena numéricamente o alfabéticamente los elementos (por defecto ascendente; pasar `cierto_es` para orden descendente).
+
+### 10.2 Pilas (Estructura LIFO: Last-In, First-Out)
+La clase `HolocronPila` modela una pila de memoria protegida para almacenamiento temporal de estados:
+```holocron
+mi_pila = crear_pila()
+apilar(mi_pila, "Plan_Alfa")
+apilar(mi_pila, "Plan_Beta")
+apilar(mi_pila, "Plan_Gamma")
+
+elemento_superior = cima(mi_pila)         // Retorna "Plan_Gamma" sin retirarlo
+elemento_extraido = desapilar(mi_pila)     // Extrae y retorna "Plan_Gamma"
+vacia = esta_vacia(mi_pila)                // Retorna falso_es
+```
+*Seguridad semántica:* Invocar `desapilar` o `cima` sobre una pila vacía produce un error controlado `EstructuraVaciaError`.
+
+### 10.3 Colas (Estructura FIFO: First-In, First-Out)
+La clase `HolocronCola` modela colas de procesamiento secuencial para despacho de tareas o naves:
+```holocron
+mi_cola = crear_cola()
+encolar(mi_cola, "Caza_01")
+encolar(mi_cola, "Caza_02")
+encolar(mi_cola, "Caza_03")
+
+proximo = frente(mi_cola)                 // Retorna "Caza_01" sin extraerlo
+atendido = desencolar(mi_cola)            // Retorna "Caza_01" y lo retira de la cola
+```
+*Seguridad semántica:* Invocar `desencolar` o `frente` sobre una cola vacía produce un error controlado `EstructuraVaciaError`.
+
+### 10.4 Estructuras de Control Iterativas (Bucles)
+HolocronDSL introduce tres construcciones cíclicas de alto nivel:
+
+1. **Bucle Condicional (`mientras`):**
+   Ejecuta un bloque de sentencias de forma repetitiva mientras una condición booleana sea verdadera:
+   ```holocron
+   contador = 0
+   mientras (contador < 5)
+       contador = contador + 1
+   fin_mientras
+   ```
+
+2. **Bucle de Rango Numérico (`para ... desde ... hasta`):**
+   Itera una variable contadora en un intervalo entero cerrado $[inicio, fin]$ con paso unitario automático:
+   ```holocron
+   total = 0
+   para i desde 1 hasta 10
+       total = total + i
+   fin_para
+   ```
+
+3. **Bucle de Colección (`recorrer ... en`):**
+   Itera directamente sobre los elementos de un arreglo, lista o columna:
+   ```holocron
+   naves = ["Destructor", "Corbeta", "Fragata"]
+   recorrer nave en naves
+       transmitir nave
+   fin_recorrer
+   ```
+
+### 10.5 Árbol de Decisión como Estructura de Datos Jerárquica
+La clase `NodoArbolDecision` modela los nodos de un árbol binario de partición:
+- **Atributos:** `es_hoja` (booleano), `columna_particion` (nombre de variable), `umbral` (valor de corte numérico o categórico), `clase_predicha` (etiqueta mayoritaria en nodos hoja), `impureza_gini` (métrica de pureza local), `muestras` (cantidad de registros que alcanzaron el nodo), `hijo_izquierdo` (rama donde el valor $\le$ umbral), `hijo_derecho` (rama donde el valor $>$ umbral).
+- **Inspección visual:** Método `imprimir_arbol()` que renderiza la jerarquía completa del árbol en texto plano ASCII legible en consola.
+
+---
+
+## 11. Motor Propio de Machine Learning (`src/runtime/ml_engine.py`)
+
+HolocronDSL no delega ningún cálculo en librerías de terceros (no utiliza `scikit-learn`, `numpy` ni `pandas`). Todo el cálculo numérico y matricial está programado desde cero.
+
+### 11.1 Algoritmos Soportados
+1. **Árbol de Decisión Clasificador (`ArbolDecisionGalactico`):**
+   - **Algoritmo:** Implementación del algoritmo CART (Classification and Regression Trees).
+   - **Criterio de corte:** Maximización de la Ganancia de Información mediante la reducción de la impureza de Gini:
+     $$I_G(S) = 1 - \sum_{k=1}^C p_k^2$$
+     $$\Delta I_G = I_G(S) - \left( \frac{|S_I|}{|S|} I_G(S_I) + \frac{|S_D|}{|S|} I_G(S_D) \right)$$
+   - **Parámetros:** `profundidad_maxima` y `minimo_muestras_corte`.
+   - **Inferencia:** Clasificación multiclase recursiva sobre nuevas observaciones.
+
+2. **Perceptrón Binario de Rosenblatt (`PerceptronGalactico`):**
+   - **Modelo:** Clasificador lineal con regla de actualización estocástica:
+     $$z = \mathbf{w}^T \mathbf{x} + b = \sum_{j=1}^d w_j x_j + b$$
+     $$\hat{y} = \begin{cases} 1 & \text{si } z \ge 0 \\ 0 & \text{si } z < 0 \end{cases}$$
+   - **Regla de aprendizaje:**
+     $$\mathbf{w}^{(t+1)} = \mathbf{w}^{(t)} + \eta (y - \hat{y}) \mathbf{x}$$
+     $$b^{(t+1)} = b^{(t)} + \eta (y - \hat{y})$$
+   - **Parámetros:** `tasa_aprendizaje` ($\eta$, por defecto 0.05), `epocas` (por defecto 100).
+
+3. **Agrupamiento K-Means (`KMeansGalactico`):**
+   - **Algoritmo:** Aprendizaje no supervisado mediante minimización de la inercia intracluster:
+     $$J = \sum_{i=1}^k \sum_{\mathbf{x} \in C_i} \|\mathbf{x} - \boldsymbol{\mu}_i\|^2$$
+   - **Inicialización:** K-Means++ determinístico basado en distancias euclidianas máximas para evitar estancamiento en mínimos locales.
+   - **Parámetros:** `k` (número de clusters) y `max_iteraciones`.
+
+### 11.2 Filtros y Preprocesamiento de Datos
+- **Normalización Min-Max:** Escala las columnas continuas al intervalo cerrado $[0, 1]$:
+  $$x' = \frac{x - x_{\min}}{x_{\max} - x_{\min}}$$
+- **Estandarización Z-Score:** Transforma la variable para que tenga media $\mu = 0$ y desviación estándar $\sigma = 1$:
+  $$z = \frac{x - \mu}{\sigma}$$
+- **Codificación de Etiquetas Categóricas:** Convierte cadenas de texto (ej. `"Imperio"`, `"Alianza"`) a enteros determinísticos $[0, 1, \dots, C-1]$.
+
+### 11.3 Métricas de Evaluación
+- `evaluar_exactitud(y_real, y_pred)`: Proporción de predicciones correctas sobre el total:
+  $$\text{Accuracy} = \frac{\sum [y_i = \hat{y}_i]}{n}$$
+- `matriz_confusion(y_real, y_pred)`: Tabla de contingencia bidimensional cruzando clases reales y predichas.
+- `calcular_impureza_gini(etiquetas)`: Impureza de Gini de un conjunto de clases.
+- `calcular_entropia(etiquetas)`: Entropía de Shannon de un conjunto de clases:
+  $$H(S) = - \sum_{k=1}^C p_k \log_2(p_k)$$
+
+### 11.4 Integración en Pipelines de HolocronDSL
+Los modelos y preprocesadores se encadenan fluidamente en los flujos tabulares:
+```holocron
+tabla_ml = abrir_holocron "examples/datos/telemetria_flota.csv"
+    |> normalizar_minmax [ columnas = ["escudos", "victorias"] ]
+    |> agrupar_kmeans [
+        columnas = ["escudos", "victorias"],
+        k = 2,
+        destino = "cluster_tactico"
+    ]
+    |> clasificar_arbol [
+        caracteristicas = ["escudos", "tripulantes"],
+        objetivo = "faccion",
+        destino = "prediccion_faccion"
+    ]
+```
+
+---
+
+## 12. Banco de Preguntas Orales para la Sustentación Final (Estructuras y ML)
+
+### Pregunta 16: "¿Cómo maneja HolocronDSL una lista de 10 posiciones y qué ocurre si se desbordan los límites?"
+* **Respuesta del estudiante:**  
+  "En HolocronDSL una lista de 10 posiciones se define mediante la función de biblioteca `crear_lista(10, valor_inicial)`, por ejemplo `mi_lista = crear_lista(10, 0)`. Esto instancia un objeto `HolocronArray` que reserva exactamente 10 elementos. Los elementos se leen o modifican mediante indexación `mi_lista[0] = 100` o `mi_lista[9] = 999`. Si se intenta acceder a un índice negativo o mayor o igual a 10 (por ejemplo `mi_lista[10]`), nuestro evaluador no produce un fallo silencioso ni una excepción no controlada de Python, sino que arroja una excepción de lenguaje `IndiceFueraDeRangoError`, indicando con exactitud la línea del programa, el índice intentado y los límites del arreglo."
+
+### Pregunta 17: "¿Cómo se diferencian conceptual y operativamente las Pilas y las Colas en HolocronDSL?"
+* **Respuesta del estudiante:**  
+  "Ambas son estructuras de datos nativas implementadas en `src/runtime/data_structures.py`. La Pila (`HolocronPila`) sigue la semántica LIFO (Last-In, First-Out), manipulándose con `apilar(pila, elem)`, `desapilar(pila)` y `cima(pila)`. La Cola (`HolocronCola`) sigue la semántica FIFO (First-In, First-Out), gestionándose con `encolar(cola, elem)`, `desencolar(cola)` y `frente(cola)`. En caso de que se intente desapilar o desencolar cuando la estructura no contiene elementos, se lanza una excepción semántica `EstructuraVaciaError`."
+
+### Pregunta 18: "¿Cómo desarrollaron el árbol de decisión y el algoritmo K-Means sin usar librerías de Machine Learning como Scikit-Learn?"
+* **Respuesta del estudiante:**  
+  "Programamos las formulaciones matemáticas originales directamente en Python puro en `src/runtime/ml_engine.py`:
+  - Para el Árbol de Decisión (`ArbolDecisionGalactico`), implementamos el algoritmo CART. En cada nodo se evalúa la impureza de Gini de la variable objetivo y se buscan todos los umbrales de corte posibles en cada columna predictora para encontrar el corte que maximice la reducción de impureza (ganancia de Gini). La estructura jerárquica del árbol se almacena en objetos `NodoArbolDecision`.
+  - Para el K-Means (`KMeansGalactico`), implementamos el cálculo de la distancia euclidiana n-dimensional, una inicialización determinística K-Means++ que escoge centroides distantes entre sí, y un bucle de convergencia que reasigna cada muestra al centroide más cercano y recalcula las coordenadas de los centroides como el vector promedio de sus miembros hasta que la inercia se estabiliza.
+  Todo el cálculo se realiza con listas y diccionarios nativos, garantizando 100% de originalidad y cero dependencias prohibidas."
+
+### Pregunta 19: "¿Cuáles son y cómo funcionan las nuevas estructuras de control de bucles en la gramática?"
+* **Respuesta del estudiante:**  
+  "Incorporamos tres tipos de bucles formales en `grammar/HolocronDSL.g4`:
+  1. `mientras (condicion) ... fin_mientras`: Bucle controlado por condición booleana arbitraria.
+  2. `para id desde inicio hasta fin ... fin_para`: Bucle para progresiones aritméticas en un rango entero inclusivo.
+  3. `recorrer id en coleccion ... fin_recorrer`: Bucle iterativo de alto nivel para recorrer secuencias de datos (arreglos o columnas).
+  El Visitor (`HolocronVisitor`) evalúa las condiciones dinámicamente y ejecuta el bloque de sentencias hijas en un ámbito de ejecución local seguro."
+
+### Pregunta 20: "¿Cómo se prueba y valida todo el sistema en Linux?"
+* **Respuesta del estudiante:**  
+  "El proyecto cuenta con un archivo `Makefile` y un ejecutor automatizado `run_tests.py` que compilan la gramática ANTLR4 y ejecutan un total de 93 pruebas unitarias e integrales organizadas en módulos:
+  - `make test` o `python3 run_tests.py --all`: Ejecuta la suite completa de 93 pruebas pasando al 100%.
+  - `make test-ds`: Ejecuta las 12 pruebas específicas de Arreglos, Pilas, Colas, Bucles y Nodos de Árbol.
+  - `make test-ml`: Ejecuta las 12 pruebas del motor de Machine Learning y pipelines de clasificación y clustering.
+  - `make run-examples`: Ejecuta secuencialmente los 7 ejemplos del lenguaje (incluyendo `07_estructuras_y_machine_learning.holo`), generando todos los reportes CSV, Excel XLS y gráficos PNG en la carpeta `salidas/`."

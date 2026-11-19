@@ -301,10 +301,12 @@ Lenguaje propio/
 │   │   └── visitor.py              # Interprete evaluador basado en patron Visitor
 │   └── runtime/                    # Bibliotecas propias del lenguaje
 │       ├── __init__.py
-│       ├── holocron_table.py       # Estructura tabular inmutable y HolocronRegressionResult
+│       ├── holocron_table.py       # Estructura tabular inmutable y metodos ML
 │       ├── io_engine.py            # Motor propio de I/O CSV y XML Spreadsheet 2003 (.xls)
 │       ├── math_engine.py          # Biblioteca matematica, estadistica y regresion OLS
-│       └── graphics_engine.py      # Motor de renderizado PNG a 300 DPI sin SVG (HolocronPlotter)
+│       ├── graphics_engine.py      # Motor de renderizado PNG a 300 DPI sin SVG (HolocronPlotter)
+│       ├── data_structures.py      # Arreglos, listas dimensionadas, pilas, colas y arboles
+│       └── ml_engine.py            # Motor nativo de Machine Learning (Arbol CART, KMeans, Perceptron)
 ├── examples/
 │   ├── datos/
 │   │   ├── telemetria_flota.csv    # Conjunto de datos de prueba (fase 1 y 2)
@@ -314,7 +316,8 @@ Lenguaje propio/
 │   ├── 03_proyeccion_holografica.holo # Bloques declarativos de graficos holograficos PNG
 │   ├── 04_mision_avanzada.holo     # Abstraccion con misiones y evaluacion condicional
 │   ├── 05_proyecto_completo.holo   # Flujo tactico integral paso a paso
-│   └── 06_caso_estudio_final.holo  # Caso de estudio: telemetria, regresion lineal y 5 graficos
+│   ├── 06_caso_estudio_final.holo  # Caso de estudio: telemetria, regresion lineal y 5 graficos
+│   └── 07_estructuras_y_machine_learning.holo # Listas de 10 pos, pilas, colas, bucles y ML
 ├── salidas/                        # Artefactos reales generados por el interprete
 │   ├── flota_operativa.csv
 │   ├── resumen_facciones.csv
@@ -338,7 +341,9 @@ Lenguaje propio/
     ├── test_semantic_errors.py     # Pruebas de deteccion de anomalias semanticas
     ├── test_semantic_execution.py  # Pruebas de ejecucion de sentencias y pipelines
     ├── test_regression.py          # Pruebas de regresion lineal OLS y graficacion
-    └── test_integration_examples.py# Pruebas integrales de los 6 programas galacticos
+    ├── test_data_structures.py     # Pruebas de arreglos, pilas, colas y bucles
+    ├── test_machine_learning.py    # Pruebas de Arbol CART, KMeans, Perceptron y metricas
+    └── test_integration_examples.py# Pruebas integrales de los programas galacticos
 ```
 
 ---
@@ -366,12 +371,15 @@ Lenguaje propio/
   - Captura y diagnostico de errores semanticos (variables inexistentes, columnas no encontradas, division por cero, tipos incompatibles, aridad de misiones).
   - Pruebas unitarias y de integracion ampliadas.
 
-- **Fase 3: Visualizacion Avanzada, Modelado Estadistico y Producto Final (100% Completada):**
+- **Fase 3: Visualizacion Avanzada, Estructuras Nativas, Machine Learning y Producto Final (100% Completada):**
   - Incorporacion de modelado de **Regresion Lineal Simple por Minimos Cuadrados Ordinarios (OLS)** con instruccion nativa `trazar_regresion` en pipeline.
   - Calculo analitico de pendiente $m$, intercepto $b$, coeficiente de determinacion $R^2$, correlacion de Pearson $r$, residuos y error estandar.
   - Subclase especializada `HolocronRegressionResult` que preserva la inmutabilidad tabular y permite encadenamientos posteriores.
   - Soporte completo para 5 tipos de graficos PNG a 300 DPI: `barras`, `histograma`, `caja`, `lineas` y `regresion` (dispersion con recta ajustada y leyenda con $R^2$).
+  - **Estructuras de datos nativas desde cero (`src/runtime/data_structures.py`):** Arreglos dinámicos (`HolocronArray`), listas dimensionadas de tamaño fijo (ej. `crear_lista(10, 0)`), indexación y asignación por índice `arr[i] = val`, Pilas LIFO (`HolocronPila`), Colas FIFO (`HolocronCola`), Nodos jerárquicos de Árbol de Decisión (`NodoArbolDecision`) y bucles (`mientras`, `para`, `recorrer`).
+  - **Motor propio de Machine Learning (`src/runtime/ml_engine.py`):** Algoritmos de clasificación por Árbol de Decisión CART (Gini), Perceptrón lineal de Rosenblatt, Agrupamiento K-Means no supervisado (K-Means++ euclidiano), métricas de exactitud y matriz de confusión, normalizaciones Min-Max y Z-Score, e integración fluida en pipelines de Holocron.
   - Caso de estudio integral en telecomunicaciones galacticas (`examples/06_caso_estudio_final.holo`) con 30 nodos y 10 atributos.
+  - Demostración integral de estructuras y ML en `examples/07_estructuras_y_machine_learning.holo`.
   - Generacion automatica de reportes consolidados en CSV, Excel nativo (.xls) y 5 graficos PNG en `salidas/`.
   - Documentacion final exhaustiva: **Manual de Usuario** (`docs/manual_usuario.md`), **Manual Tecnico** (`docs/manual_tecnico.md`), **Informe de Caso de Estudio** (`docs/caso_estudio.md`) y **Guia de Estudio con Banco de Preguntas Orales** (`docs/guia_de_estudio.md`).
-  - Suite de pruebas de regresion e integracion ampliada a **69 pruebas automatizadas con 100% de aprobacion** en menos de 2 segundos.
+  - Suite de pruebas de regresion e integracion ampliada a **93 pruebas automatizadas con 100% de aprobacion** en aproximadamente 2 segundos.

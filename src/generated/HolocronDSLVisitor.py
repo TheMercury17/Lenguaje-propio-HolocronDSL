@@ -34,6 +34,16 @@ class HolocronDSLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by HolocronDSLParser#sentenciaAsignacionIndice.
+    def visitSentenciaAsignacionIndice(self, ctx:HolocronDSLParser.SentenciaAsignacionIndiceContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#sentenciaLlamada.
+    def visitSentenciaLlamada(self, ctx:HolocronDSLParser.SentenciaLlamadaContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by HolocronDSLParser#expresionPipeline.
     def visitExpresionPipeline(self, ctx:HolocronDSLParser.ExpresionPipelineContext):
         return self.visitChildren(ctx)
@@ -144,6 +154,46 @@ class HolocronDSLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by HolocronDSLParser#operacionKMeans.
+    def visitOperacionKMeans(self, ctx:HolocronDSLParser.OperacionKMeansContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#operacionClasificarArbol.
+    def visitOperacionClasificarArbol(self, ctx:HolocronDSLParser.OperacionClasificarArbolContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#operacionClasificarPerceptron.
+    def visitOperacionClasificarPerceptron(self, ctx:HolocronDSLParser.OperacionClasificarPerceptronContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#operacionNormalizarMinMax.
+    def visitOperacionNormalizarMinMax(self, ctx:HolocronDSLParser.OperacionNormalizarMinMaxContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#operacionEstandarizarZScore.
+    def visitOperacionEstandarizarZScore(self, ctx:HolocronDSLParser.OperacionEstandarizarZScoreContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#operacionCodificarEtiquetas.
+    def visitOperacionCodificarEtiquetas(self, ctx:HolocronDSLParser.OperacionCodificarEtiquetasContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#nombreClave.
+    def visitNombreClave(self, ctx:HolocronDSLParser.NombreClaveContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#parametroML.
+    def visitParametroML(self, ctx:HolocronDSLParser.ParametroMLContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by HolocronDSLParser#sentenciaArchivado.
     def visitSentenciaArchivado(self, ctx:HolocronDSLParser.SentenciaArchivadoContext):
         return self.visitChildren(ctx)
@@ -166,6 +216,21 @@ class HolocronDSLVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by HolocronDSLParser#sentenciaCondicional.
     def visitSentenciaCondicional(self, ctx:HolocronDSLParser.SentenciaCondicionalContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#sentenciaMientras.
+    def visitSentenciaMientras(self, ctx:HolocronDSLParser.SentenciaMientrasContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#sentenciaPara.
+    def visitSentenciaPara(self, ctx:HolocronDSLParser.SentenciaParaContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#sentenciaParaRango.
+    def visitSentenciaParaRango(self, ctx:HolocronDSLParser.SentenciaParaRangoContext):
         return self.visitChildren(ctx)
 
 
@@ -246,6 +311,21 @@ class HolocronDSLVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by HolocronDSLParser#ExprAritPotencia.
     def visitExprAritPotencia(self, ctx:HolocronDSLParser.ExprAritPotenciaContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#AtomoIndexacion.
+    def visitAtomoIndexacion(self, ctx:HolocronDSLParser.AtomoIndexacionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#AtomoLlamada.
+    def visitAtomoLlamada(self, ctx:HolocronDSLParser.AtomoLlamadaContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#AtomoArreglo.
+    def visitAtomoArreglo(self, ctx:HolocronDSLParser.AtomoArregloContext):
         return self.visitChildren(ctx)
 
 

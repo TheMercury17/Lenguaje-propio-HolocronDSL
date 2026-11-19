@@ -61,7 +61,7 @@ Para preparar el entorno de ejecución en una distribución Linux (como Kali Lin
    # o alternativamente:
    python3 run_tests.py --all
    ```
-   El sistema confirmará la ejecución exitosa de las 69 pruebas unitarias e integrales.
+   El sistema confirmará la ejecución exitosa de las 93 pruebas unitarias e integrales.
 
 ### 2.3 Instalación en Windows
 
@@ -334,3 +334,136 @@ HolocronDSL ofrece mensajes de error descriptivos con indicación precisa de la 
 - **Columna no existente (`ColumnaNoExisteError`):** Se hace referencia a un nombre de columna que no pertenece a la tabla actual. Verificar mayúsculas y minúsculas (el lenguaje es sensible a la capitalización).
 - **Tipos incompatibles (`TipoIncompatibleError`):** Se intenta realizar una operación aritmética o relacional entre tipos no compatibles (por ejemplo, comparar un número con una cadena de texto).
 - **División por cero (`DivisionPorCeroError`):** Una expresión calculada genera una división entre cero. Se recomienda utilizar condicionales o reemplazar valores con `sanar_vacios`.
+- **Índice fuera de rango (`IndiceFueraDeRangoError`):** Se intenta acceder o asignar a una posición inválida en un arreglo.
+- **Estructura vacía (`EstructuraVaciaError`):** Se invoca `desapilar()`, `cima()`, `desencolar()` o `frente()` sobre una estructura que no contiene datos.
+- **Error en modelo ML (`ErrorModeloML`):** Parámetros erróneos, dimensionalidad dispar o falta de muestras en algoritmos de aprendizaje de máquina.
+
+---
+
+## 10. Estructuras de Datos y Bucles Nativos
+
+HolocronDSL ofrece estructuras de datos en memoria para manipulación secuencial y algorítmica:
+
+### 10.1 Arreglos y Listas Dimensionadas
+- **Literales de lista:** `[10, 20, 30, 40]`
+- **Creación dimensionada:** `crear_lista(longitud, valor_inicial)`
+  ```holocron
+  // Crea una lista de 10 posiciones inicializadas en 0
+  mi_lista = crear_lista(10, 0)
+  transmitir mi_lista  // [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  ```
+- **Indexación y Asignación:**
+  ```holocron
+  mi_lista[0] = 100
+  mi_lista[5] = 555
+  mi_lista[9] = 999
+  valor = mi_lista[5]
+  ```
+- **Funciones utilitarias incorporadas:**
+  - `longitud(lista)`: Número de elementos.
+  - `agregar(lista, elemento)`: Añade un elemento al final.
+  - `insertar(lista, posicion, elemento)`: Inserta un elemento en el índice indicado.
+  - `remover(lista, posicion)`: Extrae y retorna el elemento en el índice dado.
+  - `obtener(lista, posicion)`: Retorna el elemento en la posición dada.
+  - `subarreglo(lista, inicio, fin)`: Retorna una rebanada de la lista.
+  - `invertir(lista)`: Retorna una nueva lista invertida.
+  - `ordenar_lista(lista, descendente)`: Ordena los elementos numéricos o alfabéticos.
+
+### 10.2 Pilas (LIFO) y Colas (FIFO)
+- **Pila:**
+  ```holocron
+  pila = crear_pila()
+  apilar(pila, "Nivel_1")
+  apilar(pila, "Nivel_2")
+  elemento_cima = cima(pila)          // "Nivel_2"
+  desapilado = desapilar(pila)        // "Nivel_2"
+  esta_vacia_pila = esta_vacia(pila)  // falso_es
+  ```
+- **Cola:**
+  ```holocron
+  cola = crear_cola()
+  encolar(cola, "Turno_A")
+  encolar(cola, "Turno_B")
+  primero = frente(cola)              // "Turno_A"
+  atendido = desencolar(cola)         // "Turno_A"
+  esta_vacia_cola = esta_vacia(cola)  // falso_es
+  ```
+
+### 10.3 Bucles Iterativos
+1. **Bucle `mientras`:**
+   ```holocron
+   potencia = 1
+   exponente = 0
+   mientras (exponente < 5)
+       potencia = potencia * 2
+       exponente = exponente + 1
+   fin_mientras
+   ```
+2. **Bucle `para ... desde ... hasta`:**
+   ```holocron
+   suma_acumulada = 0
+   para i desde 1 hasta 10
+       suma_acumulada = suma_acumulada + i
+   fin_para
+   ```
+3. **Bucle `recorrer ... en`:**
+   ```holocron
+   flotas = ["Alfa", "Beta", "Gamma"]
+   recorrer escuadron en flotas
+       transmitir escuadron
+   fin_recorrer
+   ```
+
+---
+
+## 11. Motor Propio de Machine Learning
+
+HolocronDSL integra algoritmos de clasificación, agrupamiento, métricas y preprocesamiento en sus pipelines tabulares:
+
+### 11.1 Agrupamiento no Supervisado (K-Means)
+```holocron
+tabla_clusters = tabla_datos
+    |> agrupar_kmeans [
+        columnas = ["escudos", "victorias"],
+        k = 3,
+        destino = "cluster_asignado"
+    ]
+```
+
+### 11.2 Clasificación por Árbol de Decisión (CART)
+```holocron
+tabla_arbol = tabla_datos
+    |> clasificar_arbol [
+        caracteristicas = ["escudos", "tripulantes"],
+        objetivo = "faccion",
+        destino = "prediccion_faccion"
+    ]
+```
+
+### 11.3 Clasificación Lineal con Perceptrón
+```holocron
+tabla_perceptron = tabla_datos
+    |> clasificar_perceptron [
+        caracteristicas = ["escudos", "victorias"],
+        objetivo = "hiperimpulsor",
+        destino = "prediccion_impulsor"
+    ]
+```
+
+### 11.4 Filtros y Transformaciones de Escalamiento
+- **Normalización Min-Max ($[0, 1]$):**
+  ```holocron
+  tabla_norm = tabla_datos |> normalizar_minmax [ columnas = ["escudos", "victorias"] ]
+  ```
+- **Estandarización Z-Score ($\mu=0, \sigma=1$):**
+  ```holocron
+  tabla_std = tabla_datos |> estandarizar_zscore [ columnas = ["escudos", "victorias"] ]
+  ```
+- **Codificación de Etiquetas Categóricas a Enteros:**
+  ```holocron
+  tabla_cod = tabla_datos |> codificar_etiquetas [ columnas = ["faccion", "modelo"] ]
+  ```
+
+### 11.5 Métricas de Evaluación
+- `evaluar_exactitud(y_real, y_pred)`: Retorna la proporción de aciertos (de 0.0 a 1.0).
+- `matriz_confusion(y_real, y_pred)`: Retorna una tabla con el conteo cruzado de clases reales vs. predichas.

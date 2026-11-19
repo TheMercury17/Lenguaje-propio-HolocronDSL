@@ -5,6 +5,14 @@ from typing import List, Dict, Any, Callable, Optional, Tuple, Union
 from pathlib import Path
 from src.runtime.math_engine import HolocronMath
 from src.runtime.io_engine import HolocronIO
+from src.runtime.ml_engine import (
+    KMeansGalactico,
+    PerceptronGalactico,
+    ArbolDecisionGalactico,
+    normalizar_min_max,
+    estandarizar_z_score,
+    codificar_etiquetas as ml_codificar_etiquetas
+)
 from src.errors.semantic_error import ColumnaInexistenteError, HolocronSemanticError
 
 
@@ -347,6 +355,234 @@ class HolocronTable:
             col_y=col_y,
             col_prediccion=nombre_pred,
             nombre=f"{self.nombre}_regresion"
+        )
+
+    def agrupar_kmeans(
+        self,
+        columnas: List[str],
+        k: int = 3,
+        col_destino: str = "cluster",
+        linea: Optional[int] = None,
+        columna: Optional[int] = None
+    ) -> "HolocronTable":
+        """
+        Ejecuta agrupamiento no supervisado K-Means sobre las columnas numericas indicadas
+        y adjunta la etiqueta de cluster resultante a cada registro.
+        """
+        if not columnas:
+            columnas = [c for c in self.columnas if any(isinstance(f.get(c), (int, float)) for f in self.filas)]
+
+        for col in columnas:
+            self.validar_columna(col, linea, columna)
+
+        X = []
+        for f in self.filas:
+            fila_vec = []
+            for col in columnas:
+                val = f.get(col, 0.0)
+                fila_vec.append(float(val) if val is not None and isinstance(val, (int, float)) else 0.0)
+            X.append(fila_vec)
+
+        modelo = KMeansGalactico(k=k)
+        modelo.entrenar(X)
+        clusters = modelo.predecir(X)
+
+        nuevas_filas = []
+        for f, cl in zip(self.filas, clusters):
+            fila_copia = dict(f)
+            fila_copia[col_destino] = cl
+            nuevas_filas.append(fila_copia)
+
+        nuevas_cols = list(self.columnas)
+        if col_destino not in nuevas_cols:
+            nuevas_cols.append(col_destino)
+
+        return HolocronTable(
+            columnas=nuevas_cols,
+            filas=nuevas_filas,
+            nombre=f"{self.nombre}_kmeans"
+        )
+
+    def clasificar_arbol(
+        self,
+        col_objetivo: str,
+        columnas_caracteristicas: Optional[List[str]] = None,
+        profundidad: int = 4,
+        col_destino: Optional[str] = None,
+        linea: Optional[int] = None,
+        columna: Optional[int] = None
+    ) -> "HolocronTable":
+        """
+        Entrena un Arbol de Decision supervisado y adjunta las predicciones de clase.
+        """
+        self.validar_columna(col_objetivo, linea, columna)
+
+        if not columnas_caracteristicas:
+            columnas_caracteristicas = [
+                c for c in self.columnas
+                if c != col_objetivo and any(isinstance(f.get(c), (int, float)) for f in self.filas)
+            ]
+
+        for col in columnas_caracteristicas:
+            self.validar_columna(col, linea, columna)
+
+        X = []
+        y = []
+        for f in self.filas:
+            fila_vec = []
+            for col in columnas_caracteristicas:
+                val = f.get(col, 0.0)
+                fila_vec.append(float(val) if val is not None and isinstance(val, (int, float)) else 0.0)
+            X.append(fila_vec)
+            y.append(f.get(col_objetivo))
+
+        modelo = ArbolDecisionGalactico(profundidad_maxima=profundidad)
+        modelo.entrenar(X, y, nombres_caracteristicas=columnas_caracteristicas)
+        predicciones = modelo.predecir(X)
+
+        nombre_pred = col_destino if col_destino else f"pred_{col_objetivo}"
+        nuevas_filas = []
+        for f, pr in zip(self.filas, predicciones):
+            fila_copia = dict(f)
+            fila_copia[nombre_pred] = pr
+            nuevas_filas.append(fila_copia)
+
+        nuevas_cols = list(self.columnas)
+        if nombre_pred not in nuevas_cols:
+            nuevas_cols.append(nombre_pred)
+
+        return HolocronTable(
+            columnas=nuevas_cols,
+            filas=nuevas_filas,
+            nombre=f"{self.nombre}_arbol"
+        )
+
+    def clasificar_perceptron(
+        self,
+        col_objetivo: str,
+        columnas_caracteristicas: Optional[List[str]] = None,
+        epocas: int = 50,
+        tasa: float = 0.05,
+        col_destino: Optional[str] = None,
+        linea: Optional[int] = None,
+        columna: Optional[int] = None
+    ) -> "HolocronTable":
+        """
+        Entrena un Perceptron lineal binario supervisado y genera las predicciones de clase.
+        """
+        self.validar_columna(col_objetivo, linea, columna)
+
+        if not columnas_caracteristicas:
+            columnas_caracteristicas = [
+                c for c in self.columnas
+                if c != col_objetivo and any(isinstance(f.get(c), (int, float)) for f in self.filas)
+            ]
+
+        for col in columnas_caracteristicas:
+            self.validar_columna(col, linea, columna)
+
+        X = []
+        y = []
+        for f in self.filas:
+            fila_vec = []
+            for col in columnas_caracteristicas:
+                val = f.get(col, 0.0)
+                fila_vec.append(float(val) if val is not None and isinstance(val, (int, float)) else 0.0)
+            X.append(fila_vec)
+            y.append(f.get(col_objetivo))
+
+        modelo = PerceptronGalactico(tasa_aprendizaje=tasa, epocas=epocas)
+        modelo.entrenar(X, y)
+        predicciones = modelo.predecir(X)
+
+        nombre_pred = col_destino if col_destino else f"pred_{col_objetivo}"
+        nuevas_filas = []
+        for f, pr in zip(self.filas, predicciones):
+            fila_copia = dict(f)
+            fila_copia[nombre_pred] = pr
+            nuevas_filas.append(fila_copia)
+
+        nuevas_cols = list(self.columnas)
+        if nombre_pred not in nuevas_cols:
+            nuevas_cols.append(nombre_pred)
+
+        return HolocronTable(
+            columnas=nuevas_cols,
+            filas=nuevas_filas,
+            nombre=f"{self.nombre}_perceptron"
+        )
+
+    def normalizar_minmax(
+        self,
+        columnas: List[str],
+        linea: Optional[int] = None,
+        columna: Optional[int] = None
+    ) -> "HolocronTable":
+        """Escala las columnas numericas especificadas al intervalo [0.0, 1.0]."""
+        for col in columnas:
+            self.validar_columna(col, linea, columna)
+
+        valores_por_col = {col: normalizar_min_max(self.obtener_columna(col)) for col in columnas}
+
+        nuevas_filas = []
+        for idx, f in enumerate(self.filas):
+            fila_copia = dict(f)
+            for col in columnas:
+                fila_copia[col] = round(valores_por_col[col][idx], 4)
+            nuevas_filas.append(fila_copia)
+
+        return HolocronTable(
+            columnas=list(self.columnas),
+            filas=nuevas_filas,
+            nombre=f"{self.nombre}_minmax"
+        )
+
+    def estandarizar_zscore(
+        self,
+        columnas: List[str],
+        linea: Optional[int] = None,
+        columna: Optional[int] = None
+    ) -> "HolocronTable":
+        """Estandariza las columnas numericas especificadas a media 0 y varianza 1."""
+        for col in columnas:
+            self.validar_columna(col, linea, columna)
+
+        valores_por_col = {col: estandarizar_z_score(self.obtener_columna(col)) for col in columnas}
+
+        nuevas_filas = []
+        for idx, f in enumerate(self.filas):
+            fila_copia = dict(f)
+            for col in columnas:
+                fila_copia[col] = round(valores_por_col[col][idx], 4)
+            nuevas_filas.append(fila_copia)
+
+        return HolocronTable(
+            columnas=list(self.columnas),
+            filas=nuevas_filas,
+            nombre=f"{self.nombre}_zscore"
+        )
+
+    def codificar_etiquetas(
+        self,
+        columnas: List[str],
+        linea: Optional[int] = None,
+        columna: Optional[int] = None
+    ) -> "HolocronTable":
+        """Transforma variables categoricas de texto a valores enteros consecutivos."""
+        for col in columnas:
+            self.validar_columna(col, linea, columna)
+
+        nuevas_filas = [dict(f) for f in self.filas]
+        for col in columnas:
+            vals = [f.get(col) for f in self.filas]
+            cods, _ = ml_codificar_etiquetas(vals)
+            for idx, c in enumerate(cods):
+                nuevas_filas[idx][col] = c
+
+        return HolocronTable(
+            columnas=list(self.columnas),
+            filas=nuevas_filas,
+            nombre=f"{self.nombre}_codificado"
         )
 
     def archivar(self, ruta: str, delimitador: str = ",") -> str:

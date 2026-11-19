@@ -12,6 +12,23 @@ from src.runtime.holocron_table import HolocronTable, HolocronGroupedTable
 from src.runtime.io_engine import HolocronIO
 from src.runtime.math_engine import HolocronMath
 from src.runtime.graphics_engine import HolocronPlotter
+from src.runtime.data_structures import (
+    HolocronArray,
+    HolocronPila,
+    HolocronCola,
+    NodoArbolDecision,
+    crear_lista_dimensionada
+)
+from src.runtime.ml_engine import (
+    KMeansGalactico,
+    PerceptronGalactico,
+    ArbolDecisionGalactico,
+    distancia_euclidiana,
+    calcular_impureza_gini,
+    calcular_entropia,
+    evaluar_exactitud,
+    calcular_matriz_confusion
+)
 
 from src.errors.semantic_error import (
     HolocronSemanticError,
@@ -21,7 +38,10 @@ from src.errors.semantic_error import (
     DivisionPorCeroError,
     MisionNoDefinidaError,
     AridadInvalidaError,
-    OperacionInvalidaError
+    OperacionInvalidaError,
+    IndiceFueraDeRangoError,
+    EstructuraVaciaError,
+    ErrorModeloML
 )
 
 
@@ -83,6 +103,30 @@ class HolocronInterpreter(HolocronDSLVisitor):
         valor = self.visit(ctx.expresionPipeline())
         self.symbol_table.definir(nombre_var, valor, linea=linea, columna=columna)
         return valor
+
+    def visitSentenciaAsignacionIndice(self, ctx: HolocronDSLParser.SentenciaAsignacionIndiceContext):
+        nombre_var = ctx.ID().getText()
+        linea = ctx.start.line
+        columna = ctx.start.column
+        contenedor = self.symbol_table.obtener_valor(nombre_var, linea=linea, columna=columna)
+        indice = int(self.visit(ctx.expresionAritmetica()))
+        valor = self.visit(ctx.expresionPipeline())
+        if isinstance(contenedor, HolocronArray):
+            contenedor.asignar(indice, valor)
+        elif isinstance(contenedor, list):
+            if indice < -len(contenedor) or indice >= len(contenedor):
+                raise IndiceFueraDeRangoError(indice, len(contenedor), linea, columna)
+            contenedor[indice] = valor
+        else:
+            raise TipoIncompatibleError("asignacion_indice", type(contenedor).__name__, "int", linea, columna)
+        return valor
+
+    def visitSentenciaLlamada(self, ctx: HolocronDSLParser.SentenciaLlamadaContext):
+        nombre = ctx.ID().getText()
+        linea = ctx.start.line
+        columna = ctx.start.column
+        argumentos = [self.visit(arg) for arg in ctx.expresionPipeline()]
+        return self._ejecutar_llamada(nombre, argumentos, linea, columna)
 
     # -------------------------------------------------------------------------
     # PIPELINE Y OPERACIONES
@@ -253,7 +297,99 @@ class HolocronInterpreter(HolocronDSLVisitor):
                 columna=columna
             )
 
+        # 10. Agrupar K-Means
+        elif op_ctx.operacionKMeans():
+            k_ctx = op_ctx.operacionKMeans()
+            params = self._extraer_parametros_ml(k_ctx.parametroML()) if k_ctx.parametroML() else {}
+            k = int(params.get("k", params.get("clusters", 3)))
+            cols = params.get("columnas", params.get("cols", []))
+            destino = params.get("destino", "cluster")
+            if isinstance(tabla_entrada, HolocronGroupedTable):
+                tabla_entrada = tabla_entrada.tabla_origen
+            return tabla_entrada.agrupar_kmeans(columnas=cols, k=k, col_destino=destino, linea=linea, columna=columna)
+
+        # 11. Clasificar con Arbol de Decision
+        elif op_ctx.operacionClasificarArbol():
+            arb_ctx = op_ctx.operacionClasificarArbol()
+            params = self._extraer_parametros_ml(arb_ctx.parametroML()) if arb_ctx.parametroML() else {}
+            objetivo = params.get("objetivo", params.get("clase", params.get("y", None)))
+            if not objetivo:
+                raise ErrorModeloML("ArbolDecision", "Se debe especificar el parametro 'objetivo' en clasificar_arbol", linea, columna)
+            cols = params.get("columnas", params.get("caracteristicas", None))
+            prof = int(params.get("profundidad", 4))
+            destino = params.get("destino", f"pred_{objetivo}")
+            if isinstance(tabla_entrada, HolocronGroupedTable):
+                tabla_entrada = tabla_entrada.tabla_origen
+            return tabla_entrada.clasificar_arbol(col_objetivo=str(objetivo), columnas_caracteristicas=cols, profundidad=prof, col_destino=str(destino), linea=linea, columna=columna)
+
+        # 12. Clasificar con Perceptron
+        elif op_ctx.operacionClasificarPerceptron():
+            per_ctx = op_ctx.operacionClasificarPerceptron()
+            params = self._extraer_parametros_ml(per_ctx.parametroML()) if per_ctx.parametroML() else {}
+            objetivo = params.get("objetivo", params.get("clase", params.get("y", None)))
+            if not objetivo:
+                raise ErrorModeloML("Perceptron", "Se debe especificar el parametro 'objetivo' en clasificar_perceptron", linea, columna)
+            cols = params.get("columnas", params.get("caracteristicas", None))
+            epocas = int(params.get("epocas", 50))
+            tasa = float(params.get("tasa", 0.05))
+            destino = params.get("destino", f"pred_{objetivo}")
+            if isinstance(tabla_entrada, HolocronGroupedTable):
+                tabla_entrada = tabla_entrada.tabla_origen
+            return tabla_entrada.clasificar_perceptron(col_objetivo=str(objetivo), columnas_caracteristicas=cols, epocas=epocas, tasa=tasa, col_destino=str(destino), linea=linea, columna=columna)
+
+        # 13. Normalizar Min-Max
+        elif op_ctx.operacionNormalizarMinMax():
+            nm_ctx = op_ctx.operacionNormalizarMinMax()
+            params = self._extraer_parametros_ml(nm_ctx.parametroML()) if nm_ctx.parametroML() else {}
+            cols = params.get("columnas", [c for c in tabla_entrada.columnas if any(isinstance(f.get(c), (int, float)) for f in tabla_entrada.filas)])
+            if isinstance(tabla_entrada, HolocronGroupedTable):
+                tabla_entrada = tabla_entrada.tabla_origen
+            return tabla_entrada.normalizar_minmax(columnas=cols, linea=linea, columna=columna)
+
+        # 14. Estandarizar Z-Score
+        elif op_ctx.operacionEstandarizarZScore():
+            zs_ctx = op_ctx.operacionEstandarizarZScore()
+            params = self._extraer_parametros_ml(zs_ctx.parametroML()) if zs_ctx.parametroML() else {}
+            cols = params.get("columnas", [c for c in tabla_entrada.columnas if any(isinstance(f.get(c), (int, float)) for f in tabla_entrada.filas)])
+            if isinstance(tabla_entrada, HolocronGroupedTable):
+                tabla_entrada = tabla_entrada.tabla_origen
+            return tabla_entrada.estandarizar_zscore(columnas=cols, linea=linea, columna=columna)
+
+        # 15. Codificar Etiquetas
+        elif op_ctx.operacionCodificarEtiquetas():
+            ce_ctx = op_ctx.operacionCodificarEtiquetas()
+            params = self._extraer_parametros_ml(ce_ctx.parametroML()) if ce_ctx.parametroML() else {}
+            cols = params.get("columnas", [c for c in tabla_entrada.columnas if any(isinstance(f.get(c), str) for f in tabla_entrada.filas)])
+            if isinstance(tabla_entrada, HolocronGroupedTable):
+                tabla_entrada = tabla_entrada.tabla_origen
+            return tabla_entrada.codificar_etiquetas(columnas=cols, linea=linea, columna=columna)
+
         raise OperacionInvalidaError(op_ctx.getText(), type(tabla_entrada).__name__, linea, columna)
+
+    def _extraer_parametros_ml(self, lista_params) -> Dict[str, Any]:
+        """Extrae un diccionario de parametros a partir de una lista de parametroML."""
+        resultado = {}
+        for p in lista_params:
+            texto = p.getText()
+            if "=" in texto:
+                partes = texto.split("=", 1)
+                clave = partes[0].strip().lower()
+                val_raw = partes[1].strip()
+                if val_raw.startswith("[") and val_raw.endswith("]"):
+                    cols = [c.strip().strip('"\'') for c in val_raw[1:-1].split(",") if c.strip()]
+                    resultado[clave] = cols
+                else:
+                    val_limpio = val_raw.strip('"\'')
+                    try:
+                        if "." in val_limpio:
+                            resultado[clave] = float(val_limpio)
+                        else:
+                            resultado[clave] = int(val_limpio)
+                    except ValueError:
+                        resultado[clave] = val_limpio
+            else:
+                resultado[texto.lower()] = True
+        return resultado
 
     def _extraer_parametros_regresion(
         self,
@@ -351,37 +487,11 @@ class HolocronInterpreter(HolocronDSLVisitor):
         linea = ctx.start.line
         columna = ctx.start.column
 
-        mision = self.symbol_table.resolver_mision(nombre_mision, linea=linea, columna=columna)
-
         argumentos = []
         for expr_arg in ctx.expresionPipeline():
             argumentos.append(self.visit(expr_arg))
 
-        if len(argumentos) != len(mision.parametros):
-            raise AridadInvalidaError(
-                nombre_mision=nombre_mision,
-                esperados=len(mision.parametros),
-                recibidos=len(argumentos),
-                linea=linea,
-                columna=columna
-            )
-
-        # Crear ambito local para la mision
-        self.symbol_table.entrar_ambito(nombre_mision)
-        try:
-            # Vincular parametros por valor
-            for nombre_param, valor_arg in zip(mision.parametros, argumentos):
-                self.symbol_table.definir(nombre_param, valor_arg, linea=linea, columna=columna)
-
-            # Ejecutar sentencias del cuerpo
-            for sent_ctx in mision.sentencias_ctx:
-                self.visit(sent_ctx)
-
-            # Evaluar y retornar expresion
-            resultado = self.visit(mision.retorno_ctx)
-            return resultado
-        finally:
-            self.symbol_table.salir_ambito()
+        return self._ejecutar_llamada(nombre_mision, argumentos, linea, columna)
 
     # -------------------------------------------------------------------------
     # ARCHIVADO Y HOLOGRAMAS (VISUALIZACION)
@@ -517,6 +627,66 @@ class HolocronInterpreter(HolocronDSLVisitor):
                     self.visit(s)
 
         return None
+
+    def visitSentenciaMientras(self, ctx: HolocronDSLParser.SentenciaMientrasContext):
+        expr_bool = ctx.expresionBooleana()
+        resultado = None
+        iteraciones = 0
+        MAX_ITER = 100000
+        while bool(self.visit(expr_bool)):
+            iteraciones += 1
+            if iteraciones > MAX_ITER:
+                raise HolocronSemanticError(
+                    "Bucle interrumpido: se supero el limite de seguridad de 100000 iteraciones en el bucle 'mientras'.",
+                    ctx.start.line, ctx.start.column
+                )
+            for sent_ctx in ctx.sentencia():
+                resultado = self.visit(sent_ctx)
+        return resultado
+
+    def visitSentenciaPara(self, ctx: HolocronDSLParser.SentenciaParaContext):
+        nombre_var = ctx.ID().getText()
+        linea = ctx.start.line
+        columna = ctx.start.column
+        coleccion = self.visit(ctx.expresionPipeline())
+
+        if isinstance(coleccion, HolocronArray):
+            elementos = coleccion.a_lista_python()
+        elif isinstance(coleccion, (list, tuple)):
+            elementos = list(coleccion)
+        elif isinstance(coleccion, (HolocronPila, HolocronCola)):
+            elementos = coleccion.a_arreglo().a_lista_python()
+        elif isinstance(coleccion, HolocronTable):
+            elementos = coleccion.filas
+        elif isinstance(coleccion, str):
+            elementos = list(coleccion)
+        else:
+            raise TipoIncompatibleError("recorrer", type(coleccion).__name__, "coleccion", linea, columna)
+
+        resultado = None
+        for elem in elementos:
+            self.symbol_table.definir(nombre_var, elem, linea=linea, columna=columna)
+            for sent_ctx in ctx.sentencia():
+                resultado = self.visit(sent_ctx)
+        return resultado
+
+    def visitSentenciaParaRango(self, ctx: HolocronDSLParser.SentenciaParaRangoContext):
+        nombre_var = ctx.ID().getText()
+        linea = ctx.start.line
+        columna = ctx.start.column
+        inicio = int(self.visit(ctx.expresionAritmetica(0)))
+        fin = int(self.visit(ctx.expresionAritmetica(1)))
+        paso = 1
+        if ctx.PASO():
+            paso = int(self.visit(ctx.expresionAritmetica(2)))
+
+        resultado = None
+        rango = range(inicio, fin + 1, paso) if paso > 0 else range(inicio, fin - 1, paso)
+        for val in rango:
+            self.symbol_table.definir(nombre_var, val, linea=linea, columna=columna)
+            for sent_ctx in ctx.sentencia():
+                resultado = self.visit(sent_ctx)
+        return resultado
 
     def visitSentenciaTransmision(self, ctx: HolocronDSLParser.SentenciaTransmisionContext):
         valor = self.visit(ctx.expresionPipeline())
@@ -684,6 +854,37 @@ class HolocronInterpreter(HolocronDSLVisitor):
     # ATOMOS Y LITERALES
     # -------------------------------------------------------------------------
 
+    def visitAtomoArreglo(self, ctx: HolocronDSLParser.AtomoArregloContext):
+        elementos = [self.visit(expr) for expr in ctx.expresionPipeline()]
+        return HolocronArray(elementos)
+
+    def visitAtomoIndexacion(self, ctx: HolocronDSLParser.AtomoIndexacionContext):
+        nombre_var = ctx.ID().getText()
+        linea = ctx.start.line
+        columna = ctx.start.column
+        contenedor = self.symbol_table.obtener_valor(nombre_var, linea=linea, columna=columna)
+        indice = int(self.visit(ctx.expresionAritmetica()))
+        if isinstance(contenedor, (HolocronArray, list, tuple)):
+            if isinstance(contenedor, HolocronArray):
+                return contenedor.obtener(indice)
+            else:
+                if indice < -len(contenedor) or indice >= len(contenedor):
+                    raise IndiceFueraDeRangoError(indice, len(contenedor), linea, columna)
+                return contenedor[indice]
+        elif isinstance(contenedor, str):
+            if indice < -len(contenedor) or indice >= len(contenedor):
+                raise IndiceFueraDeRangoError(indice, len(contenedor), linea, columna)
+            return contenedor[indice]
+        else:
+            raise TipoIncompatibleError("indexacion", type(contenedor).__name__, "int", linea, columna)
+
+    def visitAtomoLlamada(self, ctx: HolocronDSLParser.AtomoLlamadaContext):
+        nombre = ctx.ID().getText()
+        linea = ctx.start.line
+        columna = ctx.start.column
+        argumentos = [self.visit(arg) for arg in ctx.expresionPipeline()]
+        return self._ejecutar_llamada(nombre, argumentos, linea, columna)
+
     def visitAtomoNumero(self, ctx: HolocronDSLParser.AtomoNumeroContext):
         texto = ctx.NUMERO().getText()
         if "." in texto:
@@ -746,3 +947,239 @@ class HolocronInterpreter(HolocronDSLVisitor):
         if isinstance(val_izq, bool) or isinstance(val_der, bool) or \
            not isinstance(val_izq, (int, float)) or not isinstance(val_der, (int, float)):
             raise TipoIncompatibleError(op, type(val_izq).__name__, type(val_der).__name__, linea, columna)
+
+    def _ejecutar_llamada(self, nombre: str, argumentos: List[Any], linea: int, columna: int) -> Any:
+        nombre_lower = nombre.lower()
+
+        # 1. Funciones de Estructuras de Datos
+        if nombre_lower in ("crear_pila", "nueva_pila"):
+            init = argumentos[0] if argumentos else None
+            return HolocronPila(init)
+
+        elif nombre_lower in ("apilar", "push"):
+            if len(argumentos) < 2:
+                raise AridadInvalidaError(nombre, 2, len(argumentos), linea, columna)
+            pila = argumentos[0]
+            if not isinstance(pila, HolocronPila):
+                raise TipoIncompatibleError("apilar", type(pila).__name__, "HolocronPila", linea, columna)
+            return pila.apilar(argumentos[1])
+
+        elif nombre_lower in ("desapilar", "pop"):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            pila = argumentos[0]
+            if not isinstance(pila, HolocronPila):
+                raise TipoIncompatibleError("desapilar", type(pila).__name__, "HolocronPila", linea, columna)
+            return pila.desapilar()
+
+        elif nombre_lower in ("cima", "tope", "peek"):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            pila = argumentos[0]
+            if not isinstance(pila, HolocronPila):
+                raise TipoIncompatibleError("cima", type(pila).__name__, "HolocronPila", linea, columna)
+            return pila.cima()
+
+        elif nombre_lower in ("crear_cola", "nueva_cola"):
+            init = argumentos[0] if argumentos else None
+            return HolocronCola(init)
+
+        elif nombre_lower in ("encolar", "queue"):
+            if len(argumentos) < 2:
+                raise AridadInvalidaError(nombre, 2, len(argumentos), linea, columna)
+            cola = argumentos[0]
+            if not isinstance(cola, HolocronCola):
+                raise TipoIncompatibleError("encolar", type(cola).__name__, "HolocronCola", linea, columna)
+            return cola.encolar(argumentos[1])
+
+        elif nombre_lower in ("desencolar", "dequeue"):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            cola = argumentos[0]
+            if not isinstance(cola, HolocronCola):
+                raise TipoIncompatibleError("desencolar", type(cola).__name__, "HolocronCola", linea, columna)
+            return cola.desencolar()
+
+        elif nombre_lower in ("frente", "front"):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            cola = argumentos[0]
+            if not isinstance(cola, HolocronCola):
+                raise TipoIncompatibleError("frente", type(cola).__name__, "HolocronCola", linea, columna)
+            return cola.frente()
+
+        elif nombre_lower in ("esta_vacia", "es_vacia"):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            est = argumentos[0]
+            if hasattr(est, "esta_vacia"):
+                return est.esta_vacia()
+            elif hasattr(est, "esta_vacio"):
+                return est.esta_vacio()
+            elif isinstance(est, (list, tuple, str, dict)):
+                return len(est) == 0
+            return False
+
+        elif nombre_lower in ("longitud", "tamano", "len", "conteo_elementos"):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            obj = argumentos[0]
+            if isinstance(obj, HolocronTable):
+                return len(obj.filas)
+            if hasattr(obj, "longitud"):
+                return obj.longitud()
+            if hasattr(obj, "tamano"):
+                return obj.tamano()
+            if isinstance(obj, (list, tuple, str, dict)):
+                return len(obj)
+            return 1
+
+        elif nombre_lower in ("crear_lista", "crear_arreglo", "nuevo_arreglo"):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            tam = int(argumentos[0])
+            val_defecto = argumentos[1] if len(argumentos) > 1 else 0
+            return crear_lista_dimensionada(tam, val_defecto)
+
+        elif nombre_lower in ("agregar", "append"):
+            if len(argumentos) < 2:
+                raise AridadInvalidaError(nombre, 2, len(argumentos), linea, columna)
+            arr = argumentos[0]
+            if isinstance(arr, HolocronArray):
+                return arr.agregar(argumentos[1])
+            elif isinstance(arr, list):
+                arr.append(argumentos[1])
+                return arr
+            raise TipoIncompatibleError("agregar", type(arr).__name__, "HolocronArray", linea, columna)
+
+        elif nombre_lower in ("insertar",):
+            if len(argumentos) < 3:
+                raise AridadInvalidaError(nombre, 3, len(argumentos), linea, columna)
+            arr = argumentos[0]
+            idx = int(argumentos[1])
+            if isinstance(arr, HolocronArray):
+                return arr.insertar(idx, argumentos[2])
+            elif isinstance(arr, list):
+                arr.insert(idx, argumentos[2])
+                return arr
+            raise TipoIncompatibleError("insertar", type(arr).__name__, "HolocronArray", linea, columna)
+
+        elif nombre_lower in ("remover", "eliminar_indice"):
+            if len(argumentos) < 2:
+                raise AridadInvalidaError(nombre, 2, len(argumentos), linea, columna)
+            arr = argumentos[0]
+            idx = int(argumentos[1])
+            if isinstance(arr, HolocronArray):
+                return arr.remover(idx)
+            elif isinstance(arr, list):
+                return arr.pop(idx)
+            raise TipoIncompatibleError("remover", type(arr).__name__, "HolocronArray", linea, columna)
+
+        elif nombre_lower in ("obtener",):
+            if len(argumentos) < 2:
+                raise AridadInvalidaError(nombre, 2, len(argumentos), linea, columna)
+            arr = argumentos[0]
+            idx = int(argumentos[1])
+            if isinstance(arr, HolocronArray):
+                return arr.obtener(idx)
+            elif isinstance(arr, (list, tuple)):
+                return arr[idx]
+            raise TipoIncompatibleError("obtener", type(arr).__name__, "HolocronArray", linea, columna)
+
+        elif nombre_lower in ("subarreglo", "rebanada"):
+            if len(argumentos) < 3:
+                raise AridadInvalidaError(nombre, 3, len(argumentos), linea, columna)
+            arr = argumentos[0]
+            ini = int(argumentos[1])
+            fin = int(argumentos[2])
+            if isinstance(arr, HolocronArray):
+                return arr.subarreglo(ini, fin)
+            elif isinstance(arr, list):
+                return arr[ini:fin]
+            raise TipoIncompatibleError("subarreglo", type(arr).__name__, "HolocronArray", linea, columna)
+
+        elif nombre_lower in ("invertir",):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            arr = argumentos[0]
+            if isinstance(arr, HolocronArray):
+                return arr.invertir()
+            elif isinstance(arr, list):
+                return list(reversed(arr))
+            raise TipoIncompatibleError("invertir", type(arr).__name__, "HolocronArray", linea, columna)
+
+        elif nombre_lower in ("ordenar_lista",):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            arr = argumentos[0]
+            asc = argumentos[1] if len(argumentos) > 1 else True
+            if isinstance(arr, HolocronArray):
+                return arr.ordenar(asc)
+            elif isinstance(arr, list):
+                return sorted(arr, reverse=not asc)
+            raise TipoIncompatibleError("ordenar_lista", type(arr).__name__, "HolocronArray", linea, columna)
+
+        # 2. Funciones de Machine Learning
+        elif nombre_lower in ("crear_arbol", "nuevo_arbol"):
+            prof = int(argumentos[0]) if argumentos else 4
+            return ArbolDecisionGalactico(profundidad_maxima=prof)
+
+        elif nombre_lower in ("crear_perceptron", "nuevo_perceptron"):
+            tasa = float(argumentos[0]) if argumentos else 0.05
+            epocas = int(argumentos[1]) if len(argumentos) > 1 else 50
+            return PerceptronGalactico(tasa_aprendizaje=tasa, epocas=epocas)
+
+        elif nombre_lower in ("crear_kmeans", "nuevo_kmeans"):
+            k = int(argumentos[0]) if argumentos else 3
+            return KMeansGalactico(k=k)
+
+        elif nombre_lower in ("evaluar_exactitud", "exactitud", "accuracy"):
+            if len(argumentos) < 2:
+                raise AridadInvalidaError(nombre, 2, len(argumentos), linea, columna)
+            y_real = list(argumentos[0]) if hasattr(argumentos[0], "__iter__") else [argumentos[0]]
+            y_pred = list(argumentos[1]) if hasattr(argumentos[1], "__iter__") else [argumentos[1]]
+            return evaluar_exactitud(y_real, y_pred)
+
+        elif nombre_lower in ("matriz_confusion",):
+            if len(argumentos) < 2:
+                raise AridadInvalidaError(nombre, 2, len(argumentos), linea, columna)
+            y_real = list(argumentos[0]) if hasattr(argumentos[0], "__iter__") else [argumentos[0]]
+            y_pred = list(argumentos[1]) if hasattr(argumentos[1], "__iter__") else [argumentos[1]]
+            res = calcular_matriz_confusion(y_real, y_pred)
+            return str(res["matriz"])
+
+        elif nombre_lower in ("distancia_euclidiana", "distancia"):
+            if len(argumentos) < 2:
+                raise AridadInvalidaError(nombre, 2, len(argumentos), linea, columna)
+            return distancia_euclidiana(list(argumentos[0]), list(argumentos[1]))
+
+        elif nombre_lower in ("impureza_gini", "gini"):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            return calcular_impureza_gini(list(argumentos[0]))
+
+        elif nombre_lower in ("entropia",):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            return calcular_entropia(list(argumentos[0]))
+
+        # 3. Mision de usuario
+        mision = self.symbol_table.resolver_mision(nombre, linea=linea, columna=columna)
+        if len(argumentos) != len(mision.parametros):
+            raise AridadInvalidaError(
+                nombre_mision=nombre,
+                esperados=len(mision.parametros),
+                recibidos=len(argumentos),
+                linea=linea,
+                columna=columna
+            )
+
+        self.symbol_table.entrar_ambito(nombre)
+        try:
+            for nombre_param, valor_arg in zip(mision.parametros, argumentos):
+                self.symbol_table.definir(nombre_param, valor_arg, linea=linea, columna=columna)
+            for sent_ctx in mision.sentencias_ctx:
+                self.visit(sent_ctx)
+            return self.visit(mision.retorno_ctx)
+        finally:
+            self.symbol_table.salir_ambito()

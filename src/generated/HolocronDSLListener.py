@@ -53,6 +53,24 @@ class HolocronDSLListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by HolocronDSLParser#sentenciaAsignacionIndice.
+    def enterSentenciaAsignacionIndice(self, ctx:HolocronDSLParser.SentenciaAsignacionIndiceContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#sentenciaAsignacionIndice.
+    def exitSentenciaAsignacionIndice(self, ctx:HolocronDSLParser.SentenciaAsignacionIndiceContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#sentenciaLlamada.
+    def enterSentenciaLlamada(self, ctx:HolocronDSLParser.SentenciaLlamadaContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#sentenciaLlamada.
+    def exitSentenciaLlamada(self, ctx:HolocronDSLParser.SentenciaLlamadaContext):
+        pass
+
+
     # Enter a parse tree produced by HolocronDSLParser#expresionPipeline.
     def enterExpresionPipeline(self, ctx:HolocronDSLParser.ExpresionPipelineContext):
         pass
@@ -251,6 +269,78 @@ class HolocronDSLListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by HolocronDSLParser#operacionKMeans.
+    def enterOperacionKMeans(self, ctx:HolocronDSLParser.OperacionKMeansContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#operacionKMeans.
+    def exitOperacionKMeans(self, ctx:HolocronDSLParser.OperacionKMeansContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#operacionClasificarArbol.
+    def enterOperacionClasificarArbol(self, ctx:HolocronDSLParser.OperacionClasificarArbolContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#operacionClasificarArbol.
+    def exitOperacionClasificarArbol(self, ctx:HolocronDSLParser.OperacionClasificarArbolContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#operacionClasificarPerceptron.
+    def enterOperacionClasificarPerceptron(self, ctx:HolocronDSLParser.OperacionClasificarPerceptronContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#operacionClasificarPerceptron.
+    def exitOperacionClasificarPerceptron(self, ctx:HolocronDSLParser.OperacionClasificarPerceptronContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#operacionNormalizarMinMax.
+    def enterOperacionNormalizarMinMax(self, ctx:HolocronDSLParser.OperacionNormalizarMinMaxContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#operacionNormalizarMinMax.
+    def exitOperacionNormalizarMinMax(self, ctx:HolocronDSLParser.OperacionNormalizarMinMaxContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#operacionEstandarizarZScore.
+    def enterOperacionEstandarizarZScore(self, ctx:HolocronDSLParser.OperacionEstandarizarZScoreContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#operacionEstandarizarZScore.
+    def exitOperacionEstandarizarZScore(self, ctx:HolocronDSLParser.OperacionEstandarizarZScoreContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#operacionCodificarEtiquetas.
+    def enterOperacionCodificarEtiquetas(self, ctx:HolocronDSLParser.OperacionCodificarEtiquetasContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#operacionCodificarEtiquetas.
+    def exitOperacionCodificarEtiquetas(self, ctx:HolocronDSLParser.OperacionCodificarEtiquetasContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#nombreClave.
+    def enterNombreClave(self, ctx:HolocronDSLParser.NombreClaveContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#nombreClave.
+    def exitNombreClave(self, ctx:HolocronDSLParser.NombreClaveContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#parametroML.
+    def enterParametroML(self, ctx:HolocronDSLParser.ParametroMLContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#parametroML.
+    def exitParametroML(self, ctx:HolocronDSLParser.ParametroMLContext):
+        pass
+
+
     # Enter a parse tree produced by HolocronDSLParser#sentenciaArchivado.
     def enterSentenciaArchivado(self, ctx:HolocronDSLParser.SentenciaArchivadoContext):
         pass
@@ -293,6 +383,33 @@ class HolocronDSLListener(ParseTreeListener):
 
     # Exit a parse tree produced by HolocronDSLParser#sentenciaCondicional.
     def exitSentenciaCondicional(self, ctx:HolocronDSLParser.SentenciaCondicionalContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#sentenciaMientras.
+    def enterSentenciaMientras(self, ctx:HolocronDSLParser.SentenciaMientrasContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#sentenciaMientras.
+    def exitSentenciaMientras(self, ctx:HolocronDSLParser.SentenciaMientrasContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#sentenciaPara.
+    def enterSentenciaPara(self, ctx:HolocronDSLParser.SentenciaParaContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#sentenciaPara.
+    def exitSentenciaPara(self, ctx:HolocronDSLParser.SentenciaParaContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#sentenciaParaRango.
+    def enterSentenciaParaRango(self, ctx:HolocronDSLParser.SentenciaParaRangoContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#sentenciaParaRango.
+    def exitSentenciaParaRango(self, ctx:HolocronDSLParser.SentenciaParaRangoContext):
         pass
 
 
@@ -437,6 +554,33 @@ class HolocronDSLListener(ParseTreeListener):
 
     # Exit a parse tree produced by HolocronDSLParser#ExprAritPotencia.
     def exitExprAritPotencia(self, ctx:HolocronDSLParser.ExprAritPotenciaContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#AtomoIndexacion.
+    def enterAtomoIndexacion(self, ctx:HolocronDSLParser.AtomoIndexacionContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#AtomoIndexacion.
+    def exitAtomoIndexacion(self, ctx:HolocronDSLParser.AtomoIndexacionContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#AtomoLlamada.
+    def enterAtomoLlamada(self, ctx:HolocronDSLParser.AtomoLlamadaContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#AtomoLlamada.
+    def exitAtomoLlamada(self, ctx:HolocronDSLParser.AtomoLlamadaContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#AtomoArreglo.
+    def enterAtomoArreglo(self, ctx:HolocronDSLParser.AtomoArregloContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#AtomoArreglo.
+    def exitAtomoArreglo(self, ctx:HolocronDSLParser.AtomoArregloContext):
         pass
 
 

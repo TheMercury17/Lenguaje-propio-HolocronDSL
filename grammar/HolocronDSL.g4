@@ -17,12 +17,17 @@ programa
 
 sentencia
     : declaracionMision
+    | sentenciaAsignacionIndice
     | sentenciaAsignacion
     | sentenciaArchivado
     | sentenciaHolograma
     | sentenciaCondicional
+    | sentenciaMientras
+    | sentenciaPara
+    | sentenciaParaRango
     | sentenciaTransmision
     | sentenciaRegresion
+    | sentenciaLlamada
     ;
 
 // -- Definicion de funciones (Misiones) --
@@ -37,9 +42,17 @@ listaParametros
     : ID (COMMA ID)*
     ;
 
-// -- Asignacion simple y Pipelines --
+// -- Asignacion simple y a indice --
 sentenciaAsignacion
     : ID OP_ASIG expresionPipeline
+    ;
+
+sentenciaAsignacionIndice
+    : ID LBRACK expresionAritmetica RBRACK OP_ASIG expresionPipeline
+    ;
+
+sentenciaLlamada
+    : ID LPAREN (expresionPipeline (COMMA expresionPipeline)*)? RPAREN
     ;
 
 expresionPipeline
@@ -71,6 +84,12 @@ operacionPipeline
     | operacionAgrupar
     | operacionResumir
     | operacionRegresion
+    | operacionKMeans
+    | operacionClasificarArbol
+    | operacionClasificarPerceptron
+    | operacionNormalizarMinMax
+    | operacionEstandarizarZScore
+    | operacionCodificarEtiquetas
     ;
 
 operacionSeleccionar
@@ -155,6 +174,47 @@ parametroRegresion
     | ID
     ;
 
+operacionKMeans
+    : AGRUPAR_KMEANS (LBRACK? parametroML (COMMA parametroML)* RBRACK?)?
+    ;
+
+operacionClasificarArbol
+    : CLASIFICAR_ARBOL (LBRACK? parametroML (COMMA parametroML)* RBRACK?)?
+    ;
+
+operacionClasificarPerceptron
+    : CLASIFICAR_PERCEPTRON (LBRACK? parametroML (COMMA parametroML)* RBRACK?)?
+    ;
+
+operacionNormalizarMinMax
+    : NORMALIZAR_MINMAX (LBRACK? parametroML (COMMA parametroML)* RBRACK?)?
+    ;
+
+operacionEstandarizarZScore
+    : ESTANDARIZAR_ZSCORE (LBRACK? parametroML (COMMA parametroML)* RBRACK?)?
+    ;
+
+operacionCodificarEtiquetas
+    : CODIFICAR_ETIQUETAS (LBRACK? parametroML (COMMA parametroML)* RBRACK?)?
+    ;
+
+nombreClave
+    : ID
+    | DESTINO
+    | EJE_X
+    | EJE_Y
+    | TITULO
+    | GUARDAR
+    | CON
+    | POR
+    | DONDE
+    ;
+
+parametroML
+    : nombreClave OP_ASIG (listaIdentificadoresOpcional | literal | nombreClave)
+    | nombreClave
+    ;
+
 // -- Persistencia de datos en disco --
 sentenciaArchivado
     : ARCHIVAR_HOLOCRON ID EN CADENA (DELIMITADO_POR CADENA)?
@@ -191,6 +251,25 @@ sentenciaCondicional
       (SENDA_OSCURA
         sentencia*)?
       FIN_EVALUAR
+    ;
+
+// -- Estructuras de control iterativas (bucles) --
+sentenciaMientras
+    : MIENTRAS LPAREN? expresionBooleana RPAREN?
+        sentencia*
+      FIN_MIENTRAS
+    ;
+
+sentenciaPara
+    : RECORRER ID EN expresionPipeline
+        sentencia*
+      FIN_RECORRER
+    ;
+
+sentenciaParaRango
+    : PARA ID DESDE expresionAritmetica HASTA expresionAritmetica (PASO expresionAritmetica)?
+        sentencia*
+      FIN_PARA
     ;
 
 // -- Mostrar mensajes o telemetria en consola --
@@ -245,7 +324,10 @@ factorPotencia
     ;
 
 atomoAritmetico
-    : NUMERO                                                        # AtomoNumero
+    : ID LBRACK expresionAritmetica RBRACK                         # AtomoIndexacion
+    | ID LPAREN (expresionPipeline (COMMA expresionPipeline)*)? RPAREN # AtomoLlamada
+    | LBRACK (expresionPipeline (COMMA expresionPipeline)*)? RBRACK # AtomoArreglo
+    | NUMERO                                                        # AtomoNumero
     | CADENA                                                        # AtomoCadena
     | BOOL                                                          # AtomoBooleano
     | ID                                                            # AtomoIdentificador
@@ -324,8 +406,25 @@ EVALUAR_FUERZA          : 'evaluar_fuerza' | 'si' | 'si_fuerza';
 SENDA_LUMINOSA          : 'senda_luminosa' | 'entonces';
 SENDA_OSCURA            : 'senda_oscura' | 'sino';
 FIN_EVALUAR             : 'fin_evaluar' | 'fin_si';
+MIENTRAS                : 'mientras' | 'ciclo_mientras';
+FIN_MIENTRAS            : 'fin_mientras' | 'fin_ciclo';
+RECORRER                : 'recorrer' | 'para_cada';
+FIN_RECORRER            : 'fin_recorrer';
+PARA                    : 'para';
+DESDE                   : 'desde';
+HASTA                   : 'hasta';
+PASO                    : 'paso';
+FIN_PARA                : 'fin_para';
 TRANSMITIR              : 'transmitir' | 'transmitir_mensaje';
 MOSTRAR                 : 'mostrar';
+
+// -- Machine Learning y Preprocesamiento --
+AGRUPAR_KMEANS          : 'agrupar_kmeans' | 'cluster_kmeans' | 'segmentar_flota';
+CLASIFICAR_ARBOL        : 'clasificar_arbol' | 'arbol_decision';
+CLASIFICAR_PERCEPTRON   : 'clasificar_perceptron' | 'perceptron';
+NORMALIZAR_MINMAX       : 'normalizar_minmax' | 'escalar_minmax';
+ESTANDARIZAR_ZSCORE     : 'estandarizar_zscore';
+CODIFICAR_ETIQUETAS     : 'codificar_etiquetas';
 
 // -- Conectores logicos simples y galacticos --
 Y_LOGICO                : 'y';

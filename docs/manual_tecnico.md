@@ -48,6 +48,8 @@ HolocronDSL está estructurado siguiendo el modelo clásico de transducción y c
                                     | • HolocronIO    (CSV / XML .xls)  |
                                     | • HolocronTable (Inmutabilidad)   |
                                     | • HolocronPlotter (Raster PNG)    |
+                                    | • DataStructures (Arreglos/Pilas) |
+                                    | • MLEngine      (Árbol/K-Means)   |
                                     +-----------------------------------+
                                                         |
                                                         v
@@ -66,10 +68,10 @@ La base del código se organiza estrictamente en paquetes desacoplados:
 - `src/generated/`: Clases generadas automáticamente por ANTLR4 (`Lexer`, `Parser`, `Visitor`, `Listener`).
 - `src/compiler/`: Fachada y driver del compilador (`driver.py`), formateador de árboles y control de pipelines.
 - `src/interpreter/`: Evaluador semántico (`visitor.py`), gestión de contextos y tabla de símbolos (`symbol_table.py`).
-- `src/runtime/`: Motores de ejecución propios (`math_engine.py`, `io_engine.py`, `holocron_table.py`, `graphics_engine.py`).
+- `src/runtime/`: Motores de ejecución propios (`math_engine.py`, `io_engine.py`, `holocron_table.py`, `graphics_engine.py`, `data_structures.py`, `ml_engine.py`).
 - `src/errors/`: Manejo unificado de excepciones sintácticas (`error_listener.py`) y semánticas (`semantic_error.py`).
 - `src/cli.py` / `holocron.py`: Punto de entrada unificado de línea de comandos.
-- `tests/`: Batería exhaustiva de pruebas unitarias y de integración (69 pruebas automatizadas).
+- `tests/`: Batería exhaustiva de pruebas unitarias y de integración (93 pruebas automatizadas).
 
 ---
 
@@ -142,6 +144,10 @@ El evaluador semántico `HolocronVisitor` (`src/interpreter/visitor.py`) hereda 
 - `visitOperacionPurgar`: Evalúa la expresión condicional para cada fila de la tabla en un contexto temporal de símbolos, conservando aquellas donde la condición resulte verdadera.
 - `visitOperacionForjar`: Evalúa una expresión aritmética sobre los valores de la fila y genera una nueva columna calculada.
 - `visitOperacionRegresion`: Ejecuta la estimación de regresión lineal OLS sobre las columnas indicadas, adjunta las predicciones y retorna un objeto `HolocronRegressionResult`.
+- `visitOperacionKMeans`, `visitOperacionArbol`, `visitOperacionPerceptron`: Despachan modelos de machine learning entrenados desde cero hacia las columnas de la tabla.
+- `visitOperacionNormalizar`, `visitOperacionEstandarizar`, `visitOperacionCodificar`: Aplican preprocesamiento y transformaciones matemáticas continuas o categóricas.
+- `visitSentenciaAsignacionIndice`: Gestiona la mutación de posiciones en arreglos `arr[i] = val` verificando límites de memoria.
+- `visitSentenciaMientras`, `visitSentenciaPara`, `visitSentenciaParaRango`: Controlan la ejecución iterativa de bucles gestionando ámbitos locales y condiciones.
 - `visitSentenciaHolograma`: Extrae los metadatos de configuración visual (`titulo`, `eje_x`, `eje_y`, `guardar_en`) e invoca al motor de graficación `HolocronPlotter`.
 - `visitSentenciaArchivado`: Recupera el objeto tabular y lo persiste físicamente en disco delegando en `HolocronIO`.
 
@@ -149,7 +155,7 @@ El evaluador semántico `HolocronVisitor` (`src/interpreter/visitor.py`) hereda 
 
 ## 5. Motores de Ejecución Propios (Runtime)
 
-Para garantizar independencia tecnológica absoluta y evitar dependencias externas como Pandas, NumPy o librerías pesadas, se construyeron cuatro motores modulares:
+Para garantizar independencia tecnológica absoluta y evitar dependencias externas como Pandas, NumPy, Scikit-Learn o librerías pesadas, se construyeron seis módulos nativos:
 
 ### 5.1 Motor Matemático (`HolocronMath`)
 Ubicado en `src/runtime/math_engine.py`, provee algoritmos analíticos puros implementados en Python estándar:
@@ -173,6 +179,7 @@ Ubicado en `src/runtime/holocron_table.py`:
 - Los datos se modelan internamente como una lista inmutable de diccionarios `List[Dict[str, Any]]`.
 - Cada operación (`purgar`, `revelar`, `forjar`, `ordenar`, `sanar_vacios`) retorna una nueva instancia de `HolocronTable`, garantizando transparencia referencial.
 - `HolocronRegressionResult` especializa a la tabla almacenando los parámetros del modelo ($m$, $b$, $R^2$, $r$) y sobrecargando los métodos de visualización tabular para imprimir resúmenes estadísticos completos en la consola.
+- Integración nativa de métodos ML en la tabla: `agrupar_kmeans()`, `clasificar_arbol()`, `clasificar_perceptron()`, `normalizar_minmax()`, `estandarizar_zscore()`, `codificar_etiquetas()`.
 
 ### 5.4 Motor de Proyección Visual (`HolocronPlotter`)
 Ubicado en `src/runtime/graphics_engine.py`:
@@ -180,6 +187,22 @@ Ubicado en `src/runtime/graphics_engine.py`:
 - **Restricción Estricta:** No utiliza formato vectorial SVG. Genera exclusivamente archivos matriciales raster PNG a una densidad fija de **300 DPI**.
 - **Tema Visual Galáctico:** Aplica fondos oscuros tácticos (`#0b0f19`), tipografías blancas nítidas, rejillas alfa sutiles y realces cromáticos de alto contraste en cian `#00e5ff`, magenta `#e040fb` y ámbar `#ffd600`.
 - Soporta cinco modos gráficos: `barras`, `histograma`, `caja`, `lineas` y `regresion` (diagrama de dispersión con línea de tendencia OLS y leyenda estadística embebida).
+
+### 5.5 Motor de Estructuras de Datos Nativas (`src/runtime/data_structures.py`)
+Implementa las estructuras de datos fundamentales para la gestión algorítmica de colecciones:
+- `HolocronArray`: Arreglo dinámico indexable con verificación estricta de límites, operaciones de rebanado (`subarreglo`), inserción en cualquier índice, remoción, inversión y ordenamiento nativo sin dependencias.
+- `crear_lista_dimensionada(tamano, valor)`: Función de factoría para instanciar arreglos de longitud fija inicializados con valores por defecto.
+- `HolocronPila`: Estructura lineal LIFO con operaciones protegidas `apilar`, `desapilar`, `cima` y `esta_vacia`.
+- `HolocronCola`: Estructura lineal FIFO con operaciones protegidas `encolar`, `desencolar`, `frente` y `esta_vacia`.
+- `NodoArbolDecision`: Estructura jerárquica binaria que almacena umbrales, columnas de partición, impureza de Gini, conteo de muestras y referencias a subárboles izquierdo y derecho.
+
+### 5.6 Motor Propio de Aprendizaje de Máquina (`src/runtime/ml_engine.py`)
+Implementa algoritmos analíticos puros de machine learning sin paquetes externos:
+- `ArbolDecisionGalactico`: Clasificador supervisado CART que optimiza de forma recursiva la reducción de impureza de Gini para variables continuas y categóricas.
+- `PerceptronGalactico`: Clasificador lineal supervisado con regla estocástica de corrección de pesos y sesgo de Frank Rosenblatt.
+- `KMeansGalactico`: Algoritmo de agrupamiento no supervisado con inicialización k-means++ determinística, cálculo de distancias euclidianas multivariadas y convergencia iterativa de centroides.
+- `Metricas`: `evaluar_exactitud()`, `calcular_matriz_confusion()`, `distancia_euclidiana()`, `calcular_impureza_gini()`, `calcular_entropia()`.
+- `Preprocesamiento`: `normalizar_min_max()`, `estandarizar_z_score()`, `codificar_etiquetas()`.
 
 ---
 
@@ -198,6 +221,9 @@ El compilador clasifica y reporta los errores en tres niveles con información c
    - `ColumnaNoExisteError`: Acceso a una columna ausente en el esquema tabular activo.
    - `TipoIncompatibleError`: Operación aritmética o relacional sobre tipos discordantes.
    - `DivisionPorCeroError`: Intento de dividir por cero en una expresión calculada.
+   - `IndiceFueraDeRangoError`: Acceso a un índice fuera de los límites del arreglo.
+   - `EstructuraVaciaError`: Operación de extracción sobre una pila o cola vacía.
+   - `ErrorModeloML`: Inconsistencia en parámetros, dimensiones o datos de entrenamiento de modelos ML.
    - `HolocronIOError`: Falla de acceso, apertura o escritura de archivos en disco.
 
 ---
@@ -206,7 +232,7 @@ El compilador clasifica y reporta los errores en tres niveles con información c
 
 El aseguramiento de calidad del compilador se sustenta en una batería de pruebas automatizadas mediante el framework `unittest` de Python, ejecutables a través del script `run_tests.py` o el comando `make test`.
 
-### 7.1 Matriz de Cobertura de Pruebas (69 Pruebas en Total)
+### 7.1 Matriz de Cobertura de Pruebas (93 Pruebas en Total)
 
 | Suite de Pruebas | Archivo | Cantidad | Alcance de Verificación |
 | :--- | :--- | :---: | :--- |
@@ -219,6 +245,8 @@ El aseguramiento de calidad del compilador se sustenta en una batería de prueba
 | **Tabla de Símbolos** | `tests/test_symbol_table.py` | 4 | Ámbitos jerárquicos, resolución de símbolos y sombreado. |
 | **Ejecución Semántica** | `tests/test_semantic_execution.py` | 18 | Asignaciones, expresiones compuestas, funciones y condicionales. |
 | **Regresión y Visualización** | `tests/test_regression.py` | 7 | Estimación OLS, correlación, ajuste tabular y proyecciones PNG. |
-| **Pruebas de Integración** | `tests/test_integration_examples.py` | 6 | Ejecución de los 6 programas de ejemplo completos `.holo`. |
+| **Estructuras de Datos** | `tests/test_data_structures.py` | 12 | Arreglos, listas de tamaño fijo, pilas LIFO, colas FIFO, bucles (mientras, para, recorrer) y nodos de árbol. |
+| **Machine Learning** | `tests/test_machine_learning.py` | 12 | K-Means, Perceptrón, Árbol CART, Gini, Entropía, métricas, normalización y pipelines DSL. |
+| **Pruebas de Integración** | `tests/test_integration_examples.py` | 6 | Ejecución de los programas de ejemplo completos `.holo`. |
 
-Todas las pruebas se ejecutan de manera determinística en aproximadamente 1.2 segundos sin generar efectos colaterales persistentes en el entorno de desarrollo.
+Todas las pruebas se ejecutan de manera determinística en aproximadamente 2 segundos sin generar efectos colaterales persistentes en el entorno de desarrollo.
