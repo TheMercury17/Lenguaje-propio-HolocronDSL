@@ -1,0 +1,36 @@
+// =============================================================================
+// EJERCICIO 2: Visualizacion de la Funcion de Activacion Sigmoide
+// Grupo 5: Andres Sebastian Coral Vallejo, Carol Arenas Cardona
+// =============================================================================
+
+transmitir "============================================================"
+transmitir "EJERCICIO 2: GENERACION Y PROYECCION DE LA FUNCION SIGMOIDE"
+transmitir "============================================================"
+
+// 1. Cargar conjunto de coordenadas de evaluacion en el intervalo [-8.0, 8.0]
+tabla_puntos = abrir_holocron "Ejercicios sustentacion final/datos/puntos_x.csv"
+
+// 2. Aplicar la funcion sigmoide: sigma(x) = 1 / (1 + exp(-x))
+// y calcular tambien su derivada: d_sigma(x) = sigma(x) * (1 - sigma(x))
+tabla_sigmoide = tabla_puntos
+    |> forjar sigmoide_y = sigmoide(x)
+    |> forjar derivada_y = sigmoide_y * (1.0 - sigmoide_y)
+
+transmitir "Muestra de puntos calculados de la funcion sigmoide:"
+transmitir tabla_sigmoide
+
+// 3. Proyectar holograma visual en formato PNG a 300 DPI
+proyectar_holograma lineas tabla_sigmoide [
+    eje_x = "x",
+    eje_y = "sigmoide_y",
+    titulo = "Curva Caracteristica de la Funcion Sigmoide sigma(x)",
+    guardar = "salidas/grafica_sigmoide.png"
+]
+
+// 4. Archivar los resultados calculados
+archivar_holocron tabla_sigmoide en "salidas/reporte_sigmoide.csv"
+archivar_holocron tabla_sigmoide en "salidas/reporte_sigmoide.xls"
+
+transmitir "============================================================"
+transmitir "VISUALIZACION Y REPORTES DE SIGMOIDE GENERADOS EXITOSAMENTE"
+transmitir "============================================================"

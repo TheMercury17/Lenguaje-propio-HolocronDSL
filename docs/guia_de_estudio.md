@@ -1082,3 +1082,51 @@ tabla_ml = abrir_holocron "examples/datos/telemetria_flota.csv"
   - `make test-ds`: Ejecuta las 12 pruebas específicas de Arreglos, Pilas, Colas, Bucles y Nodos de Árbol.
   - `make test-ml`: Ejecuta las 12 pruebas del motor de Machine Learning y pipelines de clasificación y clustering.
   - `make run-examples`: Ejecuta secuencialmente los 7 ejemplos del lenguaje (incluyendo `07_estructuras_y_machine_learning.holo`), generando todos los reportes CSV, Excel XLS y gráficos PNG en la carpeta `salidas/`."
+
+---
+
+## 13. Banco de Preguntas Específicas para los 5 Ejercicios de Sustentación Final
+
+En la carpeta `Ejercicios sustentacion final/` se encuentran los 5 programas implementados para defender la sustentación práctica. A continuación se presentan las preguntas orales esperadas y las respuestas formales recomendadas:
+
+### Pregunta 21: "¿Cómo calcularon el factorial del 5 al 100 y a qué se debe la diferencia de rendimiento frente a Python?"
+* **Respuesta del estudiante:**  
+  "Implementamos una misión iterativa `factorial(n)` en HolocronDSL (`01_factorial_rendimiento.holo`) que utiliza un bucle `para i desde 2 hasta n` multiplicando un acumulador. Ambos lenguajes manejan enteros de precisión arbitraria (BigInt), calculando con exacta precisión los 158 dígitos de 100! sin desbordamiento.
+  En cuanto al rendimiento:
+  - **Ambos algoritmos tienen una complejidad temporal O(n)**.
+  - **La diferencia de tiempo radica en el nivel de abstracción de ejecución:** Python compila el código fuente a bytecode de bajo nivel que una máquina virtual en lenguaje C (CPython) ejecuta en nanosegundos con acceso directo a registros. Por el contrario, HolocronDSL es un **intérprete sobre el árbol de sintaxis abstracta (AST)** que utiliza el patrón Visitor; cada multiplicación implica recorrer nodos de la gramática ANTLR4, buscar identificadores en la Tabla de Símbolos, verificar tipos y despachar métodos polimórficos. Esa sobrecarga de despacho dinámico en memoria es la esperada formalmente en cualquier intérprete AST respecto a un motor de bytecode optimizado."
+
+### Pregunta 22: "¿Qué propiedades matemáticas tiene la función sigmoide y por qué es indispensable en redes neuronales?"
+* **Respuesta del estudiante:**  
+  "La función sigmoide logística está definida como:
+  $$\sigma(x) = \frac{1}{1 + e^{-x}}$$
+  Sus propiedades matemáticas fundamentales son:
+  1. Su dominio son todos los reales $(-\infty, +\infty)$ y su rango es el intervalo continuo $(0.0, 1.0)$.
+  2. Su punto de simetría e inflexión ocurre en $\sigma(0) = 0.5$.
+  3. Su derivada tiene una elegante forma cerrada: $\sigma'(x) = \sigma(x) \cdot (1 - \sigma(x))$, cuya pendiente máxima es exactamente 0.25 en $x = 0$.
+  En redes neuronales es indispensable porque introduce **no linealidad**. Sin funciones de activación no lineales en las capas intermedias, una red neuronal de múltiples capas equivaldría matemáticamente a una simple combinación lineal de matrices ($W_2 \cdot W_1 \cdot x = W_{comb} \cdot x$), imposibilitando resolver problemas complejos."
+
+### Pregunta 23: "¿Por qué un perceptrón simple no puede resolver XOR y qué algoritmo usamos en el Perceptrón Multicapa (MLP)?"
+* **Respuesta del estudiante:**  
+  "Un perceptrón simple de una sola capa solo puede trazar un hiperplano de separación lineal (una línea recta en 2D). En 1969, Minsky y Papert demostraron matemáticamente que la función lógica XOR es **no linealmente separable**: los puntos de clase 1 [(0,1) y (1,0)] y los de clase 0 [(0,0) y (1,1)] se cruzan diagonalmente, por lo que ninguna línea recta puede separarlos sin error.
+  Para resolverlo desarrollamos el **Perceptrón Multicapa (`PerceptronMulticapaGalactico`)** con arquitectura 2-4-1:
+  - **Algoritmo de Optimización:** Utilizamos **Retropropagación (Backpropagation) basado en Descenso de Gradiente (Gradient Descent)**.
+  - **Función de Pérdida:** Error Cuadrático Medio ($L = \frac{1}{2} (y - \hat{y})^2$).
+  - **Mecánica:** Mediante la regla de la cadena, el error cometido en la salida se propaga hacia atrás, calculando las derivadas parciales $\frac{\partial L}{\partial W}$ para cada peso y umbral de sesgo, y actualizando los pesos mediante $W \leftarrow W - \eta \frac{\partial L}{\partial W}$ con tasa $\eta = 1.5$.
+  - Las 4 neuronas ocultas sigmoideas deforman el espacio de entrada a un espacio latente donde las clases se vuelven linealmente separables, logrando **100% de exactitud y convergencia perfecta**."
+
+### Pregunta 24: "¿Cómo implementaron el análisis exploratorio de datos sobre el archivo `.xlsx` de 10,280 filas sin librerías externas?"
+* **Respuesta del estudiante:**  
+  "El formato moderno `.xlsx` es en realidad un archivo empaquetado ZIP que contiene documentos XML conformes al estándar Office OpenXML. Construimos el motor de lectura nativo en `src/runtime/io_engine.py` utilizando únicamente la biblioteca estándar de Python (`zipfile` y `xml.etree.ElementTree`):
+  1. Descomprimimos el paquete en memoria y analizamos el archivo `xl/sharedStrings.xml` para construir la tabla indexada de cadenas de texto.
+  2. Parseamos la primera hoja `xl/worksheets/sheet1.xml`, decodificando las referencias alfanuméricas de cada celda y asociando los valores tipados (enteros, flotantes o cadenas).
+  3. En `04_analisis_exploratorio_xlsx.holo`, cargamos las 10,280 observaciones en menos de un segundo, sanamos valores vacíos y agrupamos por nivel educativo y género, calculando promedio, mediana, mínimo, máximo y desviación estándar con `HolocronMath`.
+  4. Finalmente, proyectamos 3 gráficos PNG a 300 DPI y exportamos los resúmenes en formatos `.csv` y `.xls` nativos."
+
+### Pregunta 25: "¿Cómo opera el filtro funcional de números primos del 1 al 100 en HolocronDSL?"
+* **Respuesta del estudiante:**  
+  "En el programa `05_filtro_primos_1_100.holo` implementamos:
+  1. **Algoritmo de Primalidad:** Una misión `es_primo(numero)` con complejidad $O(\sqrt{n})$, descartando pares mayores a 2 y evaluando únicamente factores impares hasta $\sqrt{n}$.
+  2. **Paradigma Funcional:** Incorporamos en el Visitor la función de orden superior `filtrar_lista(coleccion, "es_primo")`, la cual toma una lista de datos y el identificador de una misión como función predicado de primer orden, devolviendo un nuevo arreglo con los elementos que satisfacen la condición booleana.
+  3. **Verificación:** Se compara contra un bucle `recorrer elemento en numeros` con condicional `evaluar_fuerza`, comprobando que ambos enfoques aíslan exactamente los **25 números primos** que existen entre el 1 y el 100."
+

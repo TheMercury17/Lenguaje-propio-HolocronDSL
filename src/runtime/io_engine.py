@@ -2,6 +2,9 @@
 # Implementacion de parser y serializador CSV independiente (Grupo 5)
 
 import os
+import re
+import zipfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional
 from src.errors.semantic_error import ArchivoNoEncontradoError
@@ -126,6 +129,183 @@ class HolocronIO:
             registros.append(fila_dict)
 
         return columnas, registros
+
+    @staticmethod
+    def _columna_letras_a_indice(cell_ref: str) -> int:
+        """Convierte una coordenada de celda (ej. 'A1', 'BC42') a su indice de columna basado en cero."""
+        match = re.match(r"([A-Za-z]+)", cell_ref)
+        if not match:
+            return 0
+        idx = 0
+        for char in match.group(1).upper():
+            idx = idx * 26 + (ord(char) - ord("A") + 1)
+        return idx - 1
+
+    @classmethod
+    def leer_xlsx(
+        cls,
+        ruta: str,
+        linea_origen: Optional[int] = None,
+        columna_origen: Optional[int] = None
+    ) -> Tuple[List[str], List[Dict[str, Any]]]:
+        """
+        Lee un libro de calculo Microsoft Excel moderno (.xlsx) descomprimiendo
+        directamente su estructura OpenXML interna con la libreria estandar de Python,
+        sin depender de librerias de terceros como openpyxl o pandas.
+        """
+        path_archivo = Path(ruta)
+        if not path_archivo.is_file():
+            raise ArchivoNoEncontradoError(str(ruta), linea_origen, columna_origen)
+
+        try:
+            with zipfile.ZipFile(path_archivo, "r") as z:
+                # 1. Cargar cadenas compartidas (sharedStrings.xml)
+                sst: List[str] = []
+                if "xl/sharedStrings.xml" in z.namelist():
+                    root_sst = ET.fromstring(z.read("xl/sharedStrings.xml"))
+                    ns_main = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+                    for si in root_sst.findall(f"{ns_main}si"):
+                        sst.append("".join(si.itertext()))
+
+                # 2. Localizar la primera hoja disponible
+                nombre_hoja = "xl/worksheets/sheet1.xml"
+                if nombre_hoja not in z.namelist():
+                    hojas = [n for n in z.namelist() if n.startswith("xl/worksheets/sheet") and n.endswith(".xml")]
+                    if hojas:
+                        nombre_hoja = sorted(hojas)[0]
+                    else:
+                        return [], []
+
+                root_sheet = ET.fromstring(z.read(nombre_hoja))
+                ns = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+                rows = root_sheet.findall(f".//{ns}row")
+
+                if not rows:
+                    return [], []
+
+                # 3. Extraer encabezados de la primera fila
+                header_cells = rows[0].findall(f"{ns}c")
+                cols_map: Dict[int, str] = {}
+                for c in header_cells:
+                    r_ref = c.get("r", "A1")
+                    c_idx = cls._columna_letras_a_indice(r_ref)
+                    t = c.get("t")
+                    v = c.find(f"{ns}v")
+                    val = v.text if v is not None else ""
+                    if t == "s" and val != "":
+                        try:
+                            val = sst[int(val)]
+                        except (IndexError, ValueError):
+                            pass
+                    elif t == "inlineStr":
+                        val = "".join(c.itertext())
+                    cols_map[c_idx] = str(val).strip()
+
+                num_cols = max(cols_map.keys()) + 1 if cols_map else 0
+                columnas = [cols_map.get(i, f"columna_{i+1}") for i in range(num_cols)]
+                columnas = [c if c else f"columna_{i+1}" for i, c in enumerate(columnas)]
+
+                # 4. Extraer registros
+                registros: List[Dict[str, Any]] = []
+                for row in rows[1:]:
+                    fila_dict: Dict[str, Any] = {col: None for col in columnas}
+                    celdas = row.findall(f"{ns}c")
+                    for c in celdas:
+                        r_ref = c.get("r")
+                        c_idx = cls._columna_letras_a_indice(r_ref) if r_ref else 0
+                        if c_idx < len(columnas):
+                            t = c.get("t")
+                            v = c.find(f"{ns}v")
+                            val = v.text if v is not None else None
+                            if val is not None:
+                                if t == "s":
+                                    try:
+                                        val = sst[int(val)]
+                                    except (IndexError, ValueError):
+                                        pass
+                                elif t == "b":
+                                    val = (val == "1")
+                                elif t == "inlineStr":
+                                    val = "".join(c.itertext())
+                                elif t != "str":
+                                    val = cls.inferir_tipo(str(val))
+                            fila_dict[columnas[c_idx]] = val
+                    registros.append(fila_dict)
+
+                return columnas, registros
+        except Exception as e:
+            raise ArchivoNoEncontradoError(f"{ruta} (Error al leer formato .xlsx: {str(e)})", linea_origen, columna_origen)
+
+    @classmethod
+    def leer_excel_xml_2003(
+        cls,
+        ruta: str,
+        linea_origen: Optional[int] = None,
+        columna_origen: Optional[int] = None
+    ) -> Tuple[List[str], List[Dict[str, Any]]]:
+        """
+        Lee hojas de calculo en formato XML Spreadsheet 2003 (.xls).
+        """
+        path_archivo = Path(ruta)
+        if not path_archivo.is_file():
+            raise ArchivoNoEncontradoError(str(ruta), linea_origen, columna_origen)
+
+        try:
+            tree = ET.parse(path_archivo)
+            root = tree.getroot()
+            ns = {"ss": "urn:schemas-microsoft-com:office:spreadsheet"}
+
+            rows = root.findall(".//ss:Row", ns)
+            if not rows:
+                return [], []
+
+            # Encabezados
+            header_cells = rows[0].findall("ss:Cell", ns)
+            columnas = []
+            for c in header_cells:
+                data = c.find("ss:Data", ns)
+                columnas.append(data.text.strip() if data is not None and data.text else f"col_{len(columnas)+1}")
+
+            registros: List[Dict[str, Any]] = []
+            for row in rows[1:]:
+                fila_dict: Dict[str, Any] = {col: None for col in columnas}
+                cells = row.findall("ss:Cell", ns)
+                for idx, c in enumerate(cells):
+                    if idx < len(columnas):
+                        data = c.find("ss:Data", ns)
+                        if data is not None and data.text is not None:
+                            tipo = data.attrib.get(f"{{{ns['ss']}}}Type", "String")
+                            val_str = data.text.strip()
+                            if tipo == "Number":
+                                fila_dict[columnas[idx]] = cls.inferir_tipo(val_str)
+                            else:
+                                fila_dict[columnas[idx]] = val_str
+                registros.append(fila_dict)
+
+            return columnas, registros
+        except Exception as e:
+            raise ArchivoNoEncontradoError(f"{ruta} (Error al leer formato Excel XML: {str(e)})", linea_origen, columna_origen)
+
+    @classmethod
+    def leer_excel(
+        cls,
+        ruta: str,
+        linea_origen: Optional[int] = None,
+        columna_origen: Optional[int] = None
+    ) -> Tuple[List[str], List[Dict[str, Any]]]:
+        """
+        Punto de entrada unificado para hojas de calculo Excel (.xlsx u .xls).
+        Detecta automaticamente el formato interno por cabecera y extension.
+        """
+        path_archivo = Path(ruta)
+        if not path_archivo.is_file():
+            raise ArchivoNoEncontradoError(str(ruta), linea_origen, columna_origen)
+
+        # Verificar si es un archivo comprimido ZIP (formato OpenXML .xlsx)
+        if zipfile.is_zipfile(path_archivo):
+            return cls.leer_xlsx(ruta, linea_origen, columna_origen)
+        else:
+            return cls.leer_excel_xml_2003(ruta, linea_origen, columna_origen)
 
     @classmethod
     def escribir_csv(

@@ -1,0 +1,70 @@
+// =============================================================================
+// EJERCICIO 5: Filtro Funcional de Numeros Primos del 1 al 100
+// Proyecto HolocronDSL - Transduccion y Lenguajes de Programacion
+// Grupo 5: Andres Sebastian Coral Vallejo, Carol Arenas Cardona
+// =============================================================================
+
+mision es_primo(numero)
+    es_p = cierto_es
+
+    evaluar_fuerza numero <= 1
+    senda_luminosa
+        es_p = falso_es
+    fin_evaluar
+
+    evaluar_fuerza (numero > 2) y (numero % 2 == 0)
+    senda_luminosa
+        es_p = falso_es
+    fin_evaluar
+
+    evaluar_fuerza (es_p == cierto_es) y (numero > 3)
+    senda_luminosa
+        divisor = 3
+        mientras ((divisor * divisor <= numero) y (es_p == cierto_es))
+            evaluar_fuerza numero % divisor == 0
+            senda_luminosa
+                es_p = falso_es
+            senda_oscura
+                divisor = divisor + 2
+            fin_evaluar
+        fin_mientras
+    fin_evaluar
+
+    retornar es_p
+fin_mision
+
+transmitir "============================================================"
+transmitir "EJERCICIO 5: FILTRADO FUNCIONAL DE NUMEROS PRIMOS (1 AL 100)"
+transmitir "============================================================"
+
+// 1. Generacion de la coleccion de numeros del 1 al 100
+numeros_1_a_100 = rango(1, 100)
+transmitir "Coleccion inicial generada con exito."
+transmitir "Longitud de la lista original:"
+transmitir longitud(numeros_1_a_100)
+
+// 2. Filtrado utilizando la funcion de orden superior filtrar_lista
+primos_filtrados = filtrar_lista(numeros_1_a_100, "es_primo")
+transmitir "Filtrado de orden superior ejecutado correctamente."
+transmitir "Numeros primos encontrados (del 1 al 100):"
+transmitir primos_filtrados
+
+transmitir "Cantidad total de numeros primos encontrados:"
+transmitir longitud(primos_filtrados)
+
+// 3. Verificacion mediante recorrido iterativo alternativo
+primos_recorrido = []
+recorrer elemento en numeros_1_a_100
+    evaluar_fuerza es_primo(elemento) == cierto_es
+    senda_luminosa
+        agregar(primos_recorrido, elemento)
+    fin_evaluar
+fin_recorrer
+
+transmitir "Verificacion por recorrido iterativo completada."
+transmitir "Total de primos obtenidos por bucle:"
+transmitir longitud(primos_recorrido)
+
+transmitir "============================================================"
+transmitir "FILTRADO FUNCIONAL COMPLETADO CON EXITO (25 PRIMOS IDENTIFICADOS)"
+transmitir "============================================================"

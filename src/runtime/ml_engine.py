@@ -278,6 +278,185 @@ class PerceptronGalactico:
 
 
 # -----------------------------------------------------------------------------
+# Algoritmo 2.1: Perceptron Multicapa No Lineal (XOR / Backpropagation)
+# -----------------------------------------------------------------------------
+
+def sigmoide(z: Union[int, float]) -> float:
+    """
+    Funcion de activacion sigmoide logistica acotada a (-inf, +inf) -> (0.0, 1.0).
+    sigma(z) = 1 / (1 + exp(-z))
+    """
+    val = float(z)
+    if val > 60.0:
+        return 1.0
+    if val < -60.0:
+        return 0.0
+    return 1.0 / (1.0 + math.exp(-val))
+
+
+class PerceptronMulticapaGalactico:
+    """
+    Perceptron Multicapa (MLP) con capa oculta no lineal, implementado desde cero.
+    Resuelve problemas no linealmente separables (como la compuerta logica XOR)
+    mediante el algoritmo de Retropropagacion (Backpropagation) basado en
+    Descenso de Gradiente (Gradient Descent) y activaciones Sigmoides.
+    """
+
+    def __init__(
+        self,
+        neuronas_ocultas: int = 4,
+        tasa_aprendizaje: float = 1.5,
+        epocas: int = 3000,
+        semilla: int = 123
+    ):
+        self.neuronas_ocultas = int(neuronas_ocultas)
+        self.tasa_aprendizaje = float(tasa_aprendizaje)
+        self.epocas = int(epocas)
+        self.semilla = int(semilla)
+        self.W1: List[List[float]] = []
+        self.b1: List[float] = []
+        self.W2: List[float] = []
+        self.b2: float = 0.0
+        self.historial_perdida: List[float] = []
+        self.exactitud_entrenamiento: float = 0.0
+        self.clases_originales: List[Any] = [0, 1]
+
+    def entrenar(self, X: List[List[float]], y: List[Any]) -> 'PerceptronMulticapaGalactico':
+        """
+        Entrena el MLP mediante Retropropagacion (Backpropagation) y Descenso de Gradiente.
+        Minimiza la funcion de perdida del Error Cuadratico Medio (MSE).
+        """
+        if len(X) != len(y) or len(X) == 0:
+            raise ErrorModeloML(
+                modelo="PerceptronMulticapa",
+                detalle=f"Numero de muestras ({len(X)}) difiere del numero de etiquetas ({len(y)})"
+            )
+
+        clases_unicas = sorted(list(set(y)))
+        if len(clases_unicas) == 1:
+            self.clases_originales = [clases_unicas[0], clases_unicas[0]]
+        elif len(clases_unicas) == 2:
+            self.clases_originales = clases_unicas
+        else:
+            raise ErrorModeloML(
+                modelo="PerceptronMulticapa",
+                detalle=f"Admite unicamente clasificacion binaria (2 clases), recibio: {clases_unicas}"
+            )
+
+        mapeo_binario = {self.clases_originales[0]: 0.0, self.clases_originales[1]: 1.0}
+        y_bin = [mapeo_binario[val] for val in y]
+
+        dim_in = len(X[0])
+        H = self.neuronas_ocultas
+
+        # Generador congruencial lineal deterministico para inicializar pesos
+        def _rnd_gen(seed: int):
+            s = seed
+            while True:
+                s = (s * 1103515245 + 12345) & 0x7FFFFFFF
+                yield (s / 0x7FFFFFFF) * 2.0 - 1.0
+
+        gen = _rnd_gen(self.semilla)
+        self.W1 = [[next(gen) * 0.5 for _ in range(H)] for _ in range(dim_in)]
+        self.b1 = [0.0 for _ in range(H)]
+        self.W2 = [next(gen) * 0.5 for _ in range(H)]
+        self.b2 = 0.0
+        self.historial_perdida = []
+
+        lr = self.tasa_aprendizaje
+
+        for epoca in range(self.epocas):
+            perdida_epoca = 0.0
+            for xi, yi in zip(X, y_bin):
+                # 1. Forward Pass (Propagacion hacia adelante)
+                # Capa oculta: h_j = sigma(sum(x_d * W1_dj) + b1_j)
+                h: List[float] = []
+                for j in range(H):
+                    zj = sum(xi[d] * self.W1[d][j] for d in range(dim_in)) + self.b1[j]
+                    h.append(sigmoide(zj))
+
+                # Capa de salida: out = sigma(sum(h_j * W2_j) + b2)
+                zo = sum(h[j] * self.W2[j] for j in range(H)) + self.b2
+                out = sigmoide(zo)
+
+                error = out - yi
+                perdida_epoca += 0.5 * (error ** 2)
+
+                # 2. Backward Pass (Retropropagacion con regla de la cadena)
+                # Error en salida: delta_o = (out - y) * sigma'(zo)
+                d_out = error * out * (1.0 - out)
+
+                # Error propagado a la capa oculta: delta_h_j = delta_o * W2_j * sigma'(zh_j)
+                d_h = [(d_out * self.W2[j]) * h[j] * (1.0 - h[j]) for j in range(H)]
+
+                # 3. Descenso de Gradiente (Actualizacion de pesos y sesgos)
+                for j in range(H):
+                    self.W2[j] -= lr * d_out * h[j]
+                self.b2 -= lr * d_out
+
+                for d in range(dim_in):
+                    for j in range(H):
+                        self.W1[d][j] -= lr * d_h[j] * xi[d]
+                for j in range(H):
+                    self.b1[j] -= lr * d_h[j]
+
+            self.historial_perdida.append(perdida_epoca)
+
+        predicciones = self.predecir_lote(X)
+        coincidencias = sum(1 for p, real in zip(predicciones, y) if p == real)
+        self.exactitud_entrenamiento = coincidencias / len(y)
+        return self
+
+    def predecir_probabilidad(self, x: List[float]) -> float:
+        """Calcula la probabilidad continua P(clase=1|x) mediante forward pass."""
+        if not self.W1:
+            raise ErrorModeloML(modelo="PerceptronMulticapa", detalle="El modelo no ha sido entrenado")
+        dim_in = len(x)
+        H = self.neuronas_ocultas
+        h = []
+        for j in range(H):
+            zj = sum(x[d] * self.W1[d][j] for d in range(dim_in)) + self.b1[j]
+            h.append(sigmoide(zj))
+        zo = sum(h[j] * self.W2[j] for j in range(H)) + self.b2
+        return sigmoide(zo)
+
+    def predecir_uno(self, x: List[float]) -> Any:
+        """Predice la clase discreta para una observacion individual."""
+        prob = self.predecir_probabilidad(x)
+        idx = 1 if prob >= 0.5 else 0
+        return self.clases_originales[idx]
+
+    def predecir_lote(self, X: List[List[float]]) -> List[Any]:
+        """Predice las clases discretas para un conjunto de observaciones."""
+        return [self.predecir_uno(x) for x in X]
+
+    def evaluar(self, X: List[List[float]], y: List[Any]) -> Dict[str, Any]:
+        """Calcula metricas completas: exactitud, perdida final y matriz de confusion."""
+        preds = self.predecir_lote(X)
+        acc = evaluar_exactitud(y, preds)
+        matriz = calcular_matriz_confusion(y, preds)
+        return {
+            "exactitud": acc,
+            "perdida_final": self.historial_perdida[-1] if self.historial_perdida else 0.0,
+            "matriz_confusion": matriz["matriz"],
+            "predicciones": preds
+        }
+
+    def a_cadena_resumen(self) -> str:
+        """Genera un informe descriptivo de convergencia y arquitectura."""
+        lineas = [
+            "[Perceptron Multicapa Galactico - XOR / No Lineal]",
+            f"  -> Arquitectura: {len(self.W1)} entradas -> {self.neuronas_ocultas} neuronas ocultas -> 1 salida",
+            f"  -> Optimizador: Descenso de Gradiente (Gradient Descent) con Retropropagacion (Backpropagation)",
+            f"  -> Funcion de activacion: Sigmoide Logistica en todas las capas",
+            f"  -> Epocas: {self.epocas} (Tasa de aprendizaje: {self.tasa_aprendizaje})",
+            f"  -> Perdida inicial: {self.historial_perdida[0]:.6f} -> Perdida final: {self.historial_perdida[-1]:.6f}",
+            f"  -> Exactitud obtenida: {self.exactitud_entrenamiento * 100:.2f}%"
+        ]
+        return "\n".join(lineas)
+
+
+# -----------------------------------------------------------------------------
 # Algoritmo 3: Arbol de Decision Supervisado (ArbolDecisionGalactico)
 # -----------------------------------------------------------------------------
 

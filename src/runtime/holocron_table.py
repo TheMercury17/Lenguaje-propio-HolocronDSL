@@ -8,6 +8,7 @@ from src.runtime.io_engine import HolocronIO
 from src.runtime.ml_engine import (
     KMeansGalactico,
     PerceptronGalactico,
+    PerceptronMulticapaGalactico,
     ArbolDecisionGalactico,
     normalizar_min_max,
     estandarizar_z_score,
@@ -464,11 +465,13 @@ class HolocronTable:
         epocas: int = 50,
         tasa: float = 0.05,
         col_destino: Optional[str] = None,
+        multicapa: bool = False,
+        neuronas: int = 4,
         linea: Optional[int] = None,
         columna: Optional[int] = None
     ) -> "HolocronTable":
         """
-        Entrena un Perceptron lineal binario supervisado y genera las predicciones de clase.
+        Entrena un Perceptron (lineal simple o multicapa no lineal) y genera las predicciones de clase.
         """
         self.validar_columna(col_objetivo, linea, columna)
 
@@ -491,9 +494,21 @@ class HolocronTable:
             X.append(fila_vec)
             y.append(f.get(col_objetivo))
 
-        modelo = PerceptronGalactico(tasa_aprendizaje=tasa, epocas=epocas)
-        modelo.entrenar(X, y)
-        predicciones = modelo.predecir(X)
+        if multicapa:
+            n_ocultas = neuronas if neuronas > 0 else 4
+            tasa_mlp = tasa if tasa != 0.05 else 1.5
+            epocas_mlp = epocas if epocas != 50 else 3000
+            modelo_mlp = PerceptronMulticapaGalactico(
+                neuronas_ocultas=n_ocultas,
+                tasa_aprendizaje=tasa_mlp,
+                epocas=epocas_mlp
+            )
+            modelo_mlp.entrenar(X, y)
+            predicciones = modelo_mlp.predecir_lote(X)
+        else:
+            modelo = PerceptronGalactico(tasa_aprendizaje=tasa, epocas=epocas)
+            modelo.entrenar(X, y)
+            predicciones = modelo.predecir(X)
 
         nombre_pred = col_destino if col_destino else f"pred_{col_objetivo}"
         nuevas_filas = []

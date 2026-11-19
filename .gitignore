@@ -10,6 +10,7 @@ htmlcov/
 !salidas/
 !salidas/*.csv
 !salidas/*.png
+!salidas/*.xls
 
 # Documentos PDF locales
 *.pdf

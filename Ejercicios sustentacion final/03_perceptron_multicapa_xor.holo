@@ -1,0 +1,46 @@
+// =============================================================================
+// EJERCICIO 3: Perceptron Multicapa (MLP) para la Compuerta Logica XOR
+// Grupo 5: Andres Sebastian Coral Vallejo, Carol Arenas Cardona
+// =============================================================================
+
+transmitir "============================================================"
+transmitir "EJERCICIO 3: RESOLUCION DEL PROBLEMA XOR CON PERCEPTRON MULTICAPA"
+transmitir "============================================================"
+
+// 1. Cargar el conjunto de datos de la compuerta XOR (no linealmente separable)
+tabla_xor = abrir_holocron "Ejercicios sustentacion final/datos/xor_dataset.csv"
+
+transmitir "Tabla de verdad de entrada (XOR):"
+transmitir tabla_xor
+
+// 2. Entrenar el Perceptron Multicapa mediante Retropropagacion (Backpropagation)
+// y Descenso de Gradiente (Gradient Descent) con capa oculta no lineal sigmoide
+tabla_predicciones = tabla_xor
+    |> clasificar_perceptron [
+        columnas = [x1, x2],
+        objetivo = "y_real",
+        multicapa = cierto_es,
+        neuronas = 4,
+        epocas = 3000,
+        tasa = 1.5,
+        destino = "y_estimada"
+    ]
+
+transmitir "Resultados de la estimacion con Perceptron Multicapa:"
+transmitir tabla_predicciones
+
+// 3. Proyectar grafico de dispersion mostrando los puntos clasificados
+proyectar_holograma dispersion tabla_predicciones [
+    eje_x = "x1",
+    eje_y = "x2",
+    titulo = "Clasificacion de Estados XOR con Perceptron Multicapa",
+    guardar = "salidas/grafica_dispersion_xor.png"
+]
+
+// 4. Archivar reporte con las estimaciones generadas
+archivar_holocron tabla_predicciones en "salidas/reporte_estimacion_xor.csv"
+archivar_holocron tabla_predicciones en "salidas/reporte_estimacion_xor.xls"
+
+transmitir "============================================================"
+transmitir "MODELADO DE PERCEPTRON MULTICAPA PARA XOR FINALIZADO CON EXITO"
+transmitir "============================================================"

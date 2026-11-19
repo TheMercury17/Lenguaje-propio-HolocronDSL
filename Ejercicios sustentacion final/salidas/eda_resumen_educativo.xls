@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Worksheet ss:Name="Holocron">
+  <Table>
+   <Row>
+    <Cell><Data ss:Type="String">nivel_edu</Data></Cell>
+    <Cell><Data ss:Type="String">total_encuestados</Data></Cell>
+    <Cell><Data ss:Type="String">ingreso_promedio</Data></Cell>
+    <Cell><Data ss:Type="String">ingreso_mediana</Data></Cell>
+    <Cell><Data ss:Type="String">ingreso_maximo</Data></Cell>
+    <Cell><Data ss:Type="String">ingreso_minimo</Data></Cell>
+    <Cell><Data ss:Type="String">dispersion_ingreso</Data></Cell>
+    <Cell><Data ss:Type="String">escolaridad_media</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">Medio superior y superior</Data></Cell>
+    <Cell><Data ss:Type="Number">3335</Data></Cell>
+    <Cell><Data ss:Type="Number">10588.65</Data></Cell>
+    <Cell><Data ss:Type="Number">9000</Data></Cell>
+    <Cell><Data ss:Type="Number">81000</Data></Cell>
+    <Cell><Data ss:Type="Number">1000</Data></Cell>
+    <Cell><Data ss:Type="Number">8038.25</Data></Cell>
+    <Cell><Data ss:Type="Number">14.67</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">Secundaria completa</Data></Cell>
+    <Cell><Data ss:Type="Number">4151</Data></Cell>
+    <Cell><Data ss:Type="Number">6220.51</Data></Cell>
+    <Cell><Data ss:Type="Number">5418</Data></Cell>
+    <Cell><Data ss:Type="Number">43000</Data></Cell>
+    <Cell><Data ss:Type="Number">1000</Data></Cell>
+    <Cell><Data ss:Type="Number">3832.91</Data></Cell>
+    <Cell><Data ss:Type="Number">9.35</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">Prrimaria completa</Data></Cell>
+    <Cell><Data ss:Type="Number">1823</Data></Cell>
+    <Cell><Data ss:Type="Number">5490.82</Data></Cell>
+    <Cell><Data ss:Type="Number">5160</Data></Cell>
+    <Cell><Data ss:Type="Number">30000</Data></Cell>
+    <Cell><Data ss:Type="Number">1000</Data></Cell>
+    <Cell><Data ss:Type="Number">3296.95</Data></Cell>
+    <Cell><Data ss:Type="Number">6.34</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">Primaria incompleta</Data></Cell>
+    <Cell><Data ss:Type="Number">971</Data></Cell>
+    <Cell><Data ss:Type="Number">4676.7</Data></Cell>
+    <Cell><Data ss:Type="Number">4300</Data></Cell>
+    <Cell><Data ss:Type="Number">25800</Data></Cell>
+    <Cell><Data ss:Type="Number">1000</Data></Cell>
+    <Cell><Data ss:Type="Number">2831.27</Data></Cell>
+    <Cell><Data ss:Type="Number">2.29</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+</Workbook>

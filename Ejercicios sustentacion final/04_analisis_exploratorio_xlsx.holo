@@ -1,0 +1,84 @@
+// =============================================================================
+// EJERCICIO 4: Analisis Exploratorio de Datos (EDA) a partir de Archivo .xlsx
+// Ingestion Nativa de Libro Excel OpenXML (10,280 registros)
+// Grupo 5: Andres Sebastian Coral Vallejo, Carol Arenas Cardona
+// =============================================================================
+
+transmitir "============================================================"
+transmitir "EJERCICIO 4: ANALISIS EXPLORATORIO DE DATOS (EDA) SOBRE .XLSX"
+transmitir "============================================================"
+
+// 1. Ingestion nativa directa del archivo .xlsx mediante HolocronIO
+censo_poblacion = abrir_holocron "Ejercicios sustentacion final/datos/censo_ingresos.xlsx"
+
+transmitir "Holocron cargado desde Excel (.xlsx). Muestra inicial de datos:"
+transmitir censo_poblacion
+
+// 2. Limpieza y saneamiento de registros
+censo_limpio = censo_poblacion
+    |> sanar_vacios descartar
+
+// 3. Analisis y Agregacion por Nivel Educativo
+resumen_educacion = censo_limpio
+    |> agrupar por [ nivel_edu ]
+    |> resumir [
+        total_encuestados = recuento(),
+        ingreso_promedio = equilibrio(ingreso_mensual),
+        ingreso_mediana = mediana(ingreso_mensual),
+        ingreso_maximo = cenit(ingreso_mensual),
+        ingreso_minimo = nadir(ingreso_mensual),
+        dispersion_ingreso = desviacion(ingreso_mensual),
+        escolaridad_media = equilibrio(anios_esc)
+    ]
+    |> ordenar por ingreso_promedio descendente
+
+transmitir "Resumen Estadistico por Nivel Educativo:"
+transmitir resumen_educacion
+
+// 4. Analisis y Agregacion por Sexo / Genero
+resumen_sexo = censo_limpio
+    |> agrupar por [ sex ]
+    |> resumir [
+        total_poblacion = recuento(),
+        ingreso_medio = equilibrio(ingreso_mensual),
+        ingreso_mediana = mediana(ingreso_mensual),
+        edad_media = equilibrio(edad),
+        escolaridad_promedio = equilibrio(anios_esc)
+    ]
+
+transmitir "Resumen Estadistico por Genero:"
+transmitir resumen_sexo
+
+// 5. Visualizaciones Holograficas (PNG a 300 DPI)
+// Grafica 1: Ingreso promedio por nivel educativo (Barras)
+proyectar_holograma barras resumen_educacion [
+    eje_x = "nivel_edu",
+    eje_y = "ingreso_promedio",
+    titulo = "Ingreso Mensual Promedio segun Nivel Educativo",
+    guardar = "salidas/eda_ingreso_por_educacion.png"
+]
+
+// Grafica 2: Dispersion del ingreso por genero (Diagrama de Caja / Boxplot)
+proyectar_holograma caja censo_limpio [
+    eje_x = "sex",
+    eje_y = "ingreso_mensual",
+    titulo = "Distribucion y Dispersion del Ingreso Mensual por Sexo",
+    guardar = "salidas/eda_dispersion_ingreso_sexo.png"
+]
+
+// Grafica 3: Distribucion de edades de la poblacion (Histograma continuo)
+proyectar_holograma histograma censo_limpio [
+    eje_x = "edad",
+    titulo = "Distribucion de Edades de la Poblacion Censada (10,280 registros)",
+    guardar = "salidas/eda_distribucion_edad.png"
+]
+
+// 6. Exportacion y Persistencia de Reportes (CSV y Excel nativo .xls)
+archivar_holocron resumen_educacion en "salidas/eda_resumen_educativo.csv"
+archivar_holocron resumen_educacion en "salidas/eda_resumen_educativo.xls"
+archivar_holocron resumen_sexo en "salidas/eda_resumen_genero.csv"
+archivar_holocron resumen_sexo en "salidas/eda_resumen_genero.xls"
+
+transmitir "============================================================"
+transmitir "ANALISIS EXPLORATORIO DE DATOS SOBRE .XLSX COMPLETADO CON EXITO"
+transmitir "============================================================"

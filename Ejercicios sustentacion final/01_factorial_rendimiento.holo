@@ -1,0 +1,33 @@
+// =============================================================================
+// EJERCICIO 1: Calculo de Factoriales (5 al 100) en HolocronDSL
+// Grupo 5: Andres Sebastian Coral Vallejo, Carol Arenas Cardona
+// =============================================================================
+
+mision factorial(numero)
+    acumulado = 1
+    para factor desde 1 hasta numero
+        acumulado = acumulado * factor
+    fin_para
+    retornar acumulado
+fin_mision
+
+transmitir "============================================================"
+transmitir "EJERCICIO 1: CALCULO DE FACTORIALES DEL 5 AL 100"
+transmitir "============================================================"
+
+para valor_n desde 5 hasta 100
+    resultado_fact = factorial(valor_n)
+    evaluar_fuerza valor_n == 5 o valor_n == 10 o valor_n == 25 o valor_n == 50 o valor_n == 100
+    senda_luminosa
+        transmitir "Factorial calculado para n:"
+        transmitir valor_n
+        transmitir "Resultado:"
+        transmitir resultado_fact
+    senda_oscura
+        // Evaluacion secuencial silenciosa
+    fin_evaluar
+fin_para
+
+transmitir "============================================================"
+transmitir "CALCULO DE FACTORIALES (5-100) COMPLETADO EXITOSAMENTE"
+transmitir "============================================================"

@@ -22,12 +22,14 @@ from src.runtime.data_structures import (
 from src.runtime.ml_engine import (
     KMeansGalactico,
     PerceptronGalactico,
+    PerceptronMulticapaGalactico,
     ArbolDecisionGalactico,
     distancia_euclidiana,
     calcular_impureza_gini,
     calcular_entropia,
     evaluar_exactitud,
-    calcular_matriz_confusion
+    calcular_matriz_confusion,
+    sigmoide
 )
 
 from src.errors.semantic_error import (
@@ -333,9 +335,24 @@ class HolocronInterpreter(HolocronDSLVisitor):
             epocas = int(params.get("epocas", 50))
             tasa = float(params.get("tasa", 0.05))
             destino = params.get("destino", f"pred_{objetivo}")
+            neuronas = int(params.get("neuronas", 0))
+            val_multicapa = params.get("multicapa", False)
+            multicapa = bool(val_multicapa) or neuronas > 0
+            if str(val_multicapa).lower() in ("cierto_es", "true", "1"):
+                multicapa = True
             if isinstance(tabla_entrada, HolocronGroupedTable):
                 tabla_entrada = tabla_entrada.tabla_origen
-            return tabla_entrada.clasificar_perceptron(col_objetivo=str(objetivo), columnas_caracteristicas=cols, epocas=epocas, tasa=tasa, col_destino=str(destino), linea=linea, columna=columna)
+            return tabla_entrada.clasificar_perceptron(
+                col_objetivo=str(objetivo),
+                columnas_caracteristicas=cols,
+                epocas=epocas,
+                tasa=tasa,
+                col_destino=str(destino),
+                multicapa=multicapa,
+                neuronas=neuronas,
+                linea=linea,
+                columna=columna
+            )
 
         # 13. Normalizar Min-Max
         elif op_ctx.operacionNormalizarMinMax():
@@ -474,12 +491,20 @@ class HolocronInterpreter(HolocronDSLVisitor):
         linea = ctx.start.line
         columna = ctx.start.column
 
-        columnas, registros = HolocronIO.leer_csv(
-            ruta=ruta,
-            delimitador=delimitador,
-            linea_origen=linea,
-            columna_origen=columna
-        )
+        ruta_lower = ruta.lower()
+        if ruta_lower.endswith(".xlsx") or ruta_lower.endswith(".xls"):
+            columnas, registros = HolocronIO.leer_excel(
+                ruta=ruta,
+                linea_origen=linea,
+                columna_origen=columna
+            )
+        else:
+            columnas, registros = HolocronIO.leer_csv(
+                ruta=ruta,
+                delimitador=delimitador,
+                linea_origen=linea,
+                columna_origen=columna
+            )
         return HolocronTable(columnas=columnas, filas=registros, nombre=ruta)
 
     def visitLlamadaMision(self, ctx: HolocronDSLParser.LlamadaMisionContext):
@@ -1119,6 +1144,51 @@ class HolocronInterpreter(HolocronDSLVisitor):
                 return sorted(arr, reverse=not asc)
             raise TipoIncompatibleError("ordenar_lista", type(arr).__name__, "HolocronArray", linea, columna)
 
+        elif nombre_lower in ("filtrar_lista", "filtrar_coleccion", "cribar", "tamizar", "filtrar_elementos"):
+            if len(argumentos) < 2:
+                raise AridadInvalidaError(nombre, 2, len(argumentos), linea, columna)
+            lista = argumentos[0]
+            predicado = argumentos[1]
+            if isinstance(lista, HolocronArray):
+                items = lista.a_lista_python()
+            elif isinstance(lista, (list, tuple)):
+                items = list(lista)
+            else:
+                items = [lista]
+            filtrados = []
+            for item in items:
+                if isinstance(predicado, str):
+                    cumple = self._ejecutar_llamada(predicado, [item], linea, columna)
+                elif callable(predicado):
+                    cumple = predicado(item)
+                else:
+                    cumple = bool(item)
+                if cumple is True or cumple == 1:
+                    filtrados.append(item)
+            return HolocronArray(filtrados) if isinstance(lista, HolocronArray) else filtrados
+
+        elif nombre_lower in ("mapear_lista", "mapear_coleccion", "mapear", "transformar_elementos"):
+            if len(argumentos) < 2:
+                raise AridadInvalidaError(nombre, 2, len(argumentos), linea, columna)
+            lista = argumentos[0]
+            func = argumentos[1]
+            if isinstance(lista, HolocronArray):
+                items = lista.a_lista_python()
+            elif isinstance(lista, (list, tuple)):
+                items = list(lista)
+            else:
+                items = [lista]
+            mapeados = []
+            for item in items:
+                if isinstance(func, str):
+                    val = self._ejecutar_llamada(func, [item], linea, columna)
+                elif callable(func):
+                    val = func(item)
+                else:
+                    val = item
+                mapeados.append(val)
+            return HolocronArray(mapeados) if isinstance(lista, HolocronArray) else mapeados
+
         # 2. Funciones de Machine Learning
         elif nombre_lower in ("crear_arbol", "nuevo_arbol"):
             prof = int(argumentos[0]) if argumentos else 4
@@ -1163,7 +1233,55 @@ class HolocronInterpreter(HolocronDSLVisitor):
                 raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
             return calcular_entropia(list(argumentos[0]))
 
-        # 3. Mision de usuario
+        # 3. Funciones Matematicas y Perceptron Multicapa
+        elif nombre_lower in ("crear_mlp_xor", "crear_mlp", "nuevo_mlp"):
+            neuronas = int(argumentos[0]) if len(argumentos) > 0 else 4
+            tasa = float(argumentos[1]) if len(argumentos) > 1 else 1.5
+            epocas = int(argumentos[2]) if len(argumentos) > 2 else 3000
+            return PerceptronMulticapaGalactico(neuronas_ocultas=neuronas, tasa_aprendizaje=tasa, epocas=epocas)
+
+        elif nombre_lower in ("sigmoide", "sigmoid"):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            return sigmoide(argumentos[0])
+
+        elif nombre_lower in ("exp",):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            try:
+                return math.exp(float(argumentos[0]))
+            except OverflowError:
+                return float("inf")
+
+        elif nombre_lower in ("raiz", "sqrt"):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            return math.sqrt(float(argumentos[0]))
+
+        elif nombre_lower in ("potencia", "pow"):
+            if len(argumentos) < 2:
+                raise AridadInvalidaError(nombre, 2, len(argumentos), linea, columna)
+            return math.pow(float(argumentos[0]), float(argumentos[1]))
+
+        elif nombre_lower in ("absoluto", "abs"):
+            if len(argumentos) < 1:
+                raise AridadInvalidaError(nombre, 1, len(argumentos), linea, columna)
+            return abs(float(argumentos[0]))
+
+        elif nombre_lower in ("rango", "crear_rango"):
+            if len(argumentos) < 2:
+                raise AridadInvalidaError(nombre, 2, len(argumentos), linea, columna)
+            ini = int(argumentos[0])
+            fin = int(argumentos[1])
+            paso = int(argumentos[2]) if len(argumentos) > 2 else 1
+            if paso == 0:
+                paso = 1
+            if ini <= fin:
+                return HolocronArray(list(range(ini, fin + 1, paso)))
+            else:
+                return HolocronArray(list(range(ini, fin - 1, -abs(paso))))
+
+        # 4. Mision de usuario
         mision = self.symbol_table.resolver_mision(nombre, linea=linea, columna=columna)
         if len(argumentos) != len(mision.parametros):
             raise AridadInvalidaError(
