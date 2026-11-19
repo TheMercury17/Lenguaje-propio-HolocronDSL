@@ -787,7 +787,7 @@ A continuación se presentan las preguntas más probables que el profesor puede 
 * Tener abiertas dos pestañas en la terminal de Kali Linux:
   * **Pestaña 1:** Ubicada en la raíz del proyecto para ejecutar pruebas y programas (`make test`, `python3 holocron.py ...`).
   * **Pestaña 2:** Lista para editar código con `nano` o revisar los archivos resultantes en la carpeta `salidas/`.
-* Si el profesor pide comprobar la suite de pruebas automatizadas, ejecutar `make test` o `python3 run_tests.py --all`. Al ver las 61 pruebas pasar con éxito en menos de 1 segundo, se demuestra la solidez y estabilidad del compilador.
+* Si el profesor pide comprobar la suite de pruebas automatizadas, ejecutar `make test` o `python3 run_tests.py --all`. Al ver las 69 pruebas pasar con éxito en menos de 2 segundos, se demuestra la solidez y estabilidad del compilador.
 
 ### 7.3 Comandos de Rescate Rápido en Kali Linux
 * **Si falta el entorno virtual:**
@@ -809,128 +809,81 @@ A continuación se presentan las preguntas más probables que el profesor puede 
 
 ---
 
-## 8. Hoja de Comandos Rápidos de Terminal para la Sustentación (Linux / Kali)
+## 8. Tercera Entrega (Fase 3): Modelado Estadístico, Regresión Lineal y Caso de Estudio
 
-### 8.1 Visualización de la Gramática Formal (.g4) en Consola
-Para mostrar la gramática ANTLR4 directamente en la terminal:
-```bash
-# Opcion A: Ver todo el archivo continuo
-cat src/grammar/HolocronDSL.g4
+La tercera entrega consolida a HolocronDSL como una solución integral de ciencia de datos, integrando capacidades analíticas avanzadas, modelado matemático formal y un caso de estudio real con 5 tipos de visualizaciones.
 
-# Opcion B: Verlo paginado (navegar con flechas arriba/abajo, buscar con '/' y salir con 'q')
-less src/grammar/HolocronDSL.g4
+### 8.1 Regresión Lineal Simple por Mínimos Cuadrados Ordinarios (OLS)
+El lenguaje no recurre a paquetes externos como `scikit-learn` ni `statsmodels`. El ajuste se resuelve analíticamente en `HolocronMath.regresion_lineal`:
 
-# Opcion C: Ver las primeras 40 lineas (reglas de tokens principales)
-head -n 40 src/grammar/HolocronDSL.g4
+1. **Fórmulas de estimación:**
+   $$\text{Pendiente } m = \frac{\sum_{i=1}^n (x_i - \bar{x})(y_i - \bar{y})}{\sum_{i=1}^n (x_i - \bar{x})^2}$$
+   $$\text{Intercepto } b = \bar{y} - m\bar{x}$$
+   $$\text{Coeficiente de determinación } R^2 = 1 - \frac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - \bar{y})^2}$$
+   $$\text{Correlación de Pearson } r = \frac{\text{Cov}(X,Y)}{S_x S_y}$$
 
-# Opcion D: Ver con numeros de linea en pantalla
-nl -ba src/grammar/HolocronDSL.g4 | less
-```
+2. **Sintaxis en HolocronDSL:**
+   ```holocron
+   modelo = tabla
+       |> trazar_regresion [
+           eje_x = "distancia_parsecs",
+           eje_y = "latencia_ms",
+           destino = "latencia_predicha"
+       ]
+   ```
 
-### 8.2 Edición de Archivos en la Terminal de Linux
-Para modificar ejemplos, gramática o código fuente:
-```bash
-# Editar un ejemplo especifico (.holo)
-nano examples/01_telemetria_cazas.holo
+3. **Estructura `HolocronRegressionResult`:**
+   El resultado es una subclase especializada de `HolocronTable` que contiene tanto la tabla enriquecida con la columna de predicciones como los metadatos del modelo ($m$, $b$, $R^2$, $r$, $S_e$, residuos). Esto permite continuar encadenando operaciones en el pipeline si se desea.
 
-# Editar la gramatica ANTLR4 (.g4)
-nano src/grammar/HolocronDSL.g4
+### 8.2 Visualizaciones Holográficas (5 Tipos Matriciales PNG a 300 DPI)
+HolocronDSL ofrece soporte nativo para 5 representaciones gráficas completas:
+1. `barras`: Comparaciones categóricas discretas (ej. latencia media por sector).
+2. `histograma`: Distribuciones continuas de frecuencia (ej. distribución de latencia).
+3. `caja` (boxplot): Análisis de dispersión, medianas y cuartiles (ej. ancho de banda).
+4. `lineas`: Series ordenadas o perfiles de degradación.
+5. `regresion` / `tendencia`: Diagrama de dispersión de puntos reales con la recta ajustada y leyenda con $R^2$ y ecuación.
 
-# Atajos esenciales dentro del editor nano:
-# Ctrl + O   -> Guardar cambios (presionar Enter para confirmar el nombre)
-# Ctrl + X   -> Salir del editor
-# Ctrl + W   -> Buscar una palabra o regla
-# Alt  + U   -> Deshacer ultimo cambio
-```
+**Regla estricta:** Todas las imágenes se generan en formato raster PNG a 300 DPI utilizando el backend no interactivo `Agg` de Matplotlib, descartando explícitamente el uso de SVG para evitar inconsistencias de visualización.
 
-### 8.3 Recompilación de la Gramática ANTLR4
-Si durante la sustentación el docente solicita añadir o modificar una regla en `HolocronDSL.g4`:
-```bash
-# 1. Recompilar la gramatica a codigo Python (actualiza src/generated/)
-make grammar
+### 8.3 Resumen del Caso de Estudio Final
+Ubicado en `examples/06_caso_estudio_final.holo`:
+- **Dominio:** Telemetría de 30 repetidores de telecomunicaciones galácticas en 10 sectores astronómicos.
+- **Pipeline aplicado:** Filtrado de nodos operativos, saneamiento de nulos, forja de tasa de pérdida de paquetes y carga efectiva, ordenamiento, agregación multidimensional por sector y ajuste de regresión OLS entre distancia y latencia.
+- **Resultados obtenidos:** $m = 1.0967$, $b = 4.0152$, $R^2 = 0.9842$, $r = 0.9921$.
+- **Archivos generados:** 5 imágenes PNG a 300 DPI, 1 tabla CSV consolidada y 1 libro de cálculo Excel (.xls) nativo con datos y predicciones.
 
-# Equivalente manual en caso de no usar make:
-python3 -m antlr4 -Dlanguage=Python3 -visitor -no-listener -o src/generated src/grammar/HolocronDSL.g4
-```
+---
 
-### 8.4 Ejecución de Ejemplos Puntuales con el CLI (`holocron.py`)
-```bash
-# Ejecutar normalmente un ejemplo puntual (interpreta, calcula y guarda archivos)
-python3 holocron.py examples/01_telemetria_cazas.holo
+## 9. Banco de Preguntas Orales para la Sustentación del Tercer Corte
 
-# Ejecutar el ejemplo 2 (agrupamiento y estadisticas de censo)
-python3 holocron.py examples/02_censo_galactico.holo
+### Pregunta 11: "¿Cómo implementaron la regresión lineal en HolocronDSL sin usar scikit-learn ni bibliotecas de machine learning?"
+* **Respuesta del estudiante:**  
+  "Desarrollamos las fórmulas matemáticas analíticas del método de Mínimos Cuadrados Ordinarios (OLS) directamente en Python puro dentro de `src/runtime/math_engine.py`. El método `regresion_lineal()` limpia pares válidos de números, calcula las medias aritméticas $\bar{x}$ y $\bar{y}$, la covarianza muestral, la varianza de $x$ y obtiene directamente la pendiente $m$ y el intercepto $b$. A partir de allí evalúa la suma de cuadrados de los residuos y la suma total de cuadrados para calcular el coeficiente de determinación $R^2$ y el coeficiente de correlación de Pearson $r$. De este modo no requerimos ninguna dependencia externa pesada para modelar."
 
-# Ejecutar el ejemplo 3 (proyeccion de graficos PNG)
-python3 holocron.py examples/03_proyeccion_holografica.holo
+### Pregunta 12: "¿Por qué no utilizaron el formato vectorial SVG para los gráficos y cómo garantizan que funcione en una máquina virtual de Linux sin entorno gráfico?"
+* **Respuesta del estudiante:**  
+  "Descartamos deliberadamente el formato SVG porque su visualización depende de renderizadores vectoriales del navegador o visores externos que pueden alterar fuentes, tamaños y estilos. En su lugar, generamos imágenes rasterizadas PNG de alta resolución fija a 300 DPI. Para que funcione sin problemas en servidores o máquinas virtuales Linux como Kali, configuramos el backend `Agg` (Anti-Grain Geometry) de Matplotlib al inicio de `graphics_engine.py`. Este backend dibuja directamente sobre mapas de bits en la memoria RAM y guarda el PNG en disco, sin requerir un servidor de pantallas X11 ni interfaz gráfica de usuario activa."
 
-# Ejecutar en modo detallado (muestra trazabilidad de operaciones)
-python3 holocron.py examples/01_telemetria_cazas.holo --verbose
+### Pregunta 13: "¿Qué es `HolocronRegressionResult` y cómo mantiene la coherencia del lenguaje?"
+* **Respuesta del estudiante:**  
+  "`HolocronRegressionResult` es una subclase de `HolocronTable`. Al ser una tabla, hereda todas las propiedades de inmutabilidad y puede seguirse encadenando con otras operaciones del pipeline (como `purgar`, `ordenar` o `archivar_holocron`). Sin embargo, almacena adicionalmente un diccionario con los parámetros del modelo matemático ($m$, $b$, $R^2$, $r$, residuos) y sobreescribe el método de representación para que al ejecutar `transmitir modelo`, la consola muestre tanto el resumen estadístico de la ecuación ajustada como la tabla de datos extendida con la nueva columna de predicciones."
 
-# Validar UNICAMENTE la sintaxis sin ejecutar ni modificar disco
-python3 holocron.py examples/01_telemetria_cazas.holo --check
+### Pregunta 14: "¿Cómo sustentan que HolocronDSL es totalmente original frente a otros proyectos del curso?"
+* **Respuesta del estudiante:**  
+  "HolocronDSL posee una identidad temática, sintáctica y semántica completamente única basada en la ciencia de datos y el universo galáctico. Nuestro vocabulario utiliza términos formales como `abrir_holocron`, `revelar`, `purgar donde`, `forjar`, `agrupar por`, `resumir`, `trazar_regresion`, `proyectar_holograma` y `transmitir`. No comparte absolutamente ninguna palabra clave, convención ni estructura con otros repositorios del curso. Además, todas las bibliotecas de procesamiento tabular (`HolocronTable`), matemáticas (`HolocronMath`) y exportación a Excel XML 2003 (`HolocronIO`) fueron escritas desde cero por nosotros sin utilizar librerías típicas como pandas o numpy."
 
-# Visualizar el Arbol de Analisis Sintactico (AST) en formato indentado
-python3 holocron.py examples/01_telemetria_cazas.holo --tree
-
-# Visualizar el AST en notacion LISP (S-Expressions)
-python3 holocron.py examples/01_telemetria_cazas.holo --lisp
-```
-
-### 8.5 Inspección y Verificación de los Archivos de Salida Generados
-Cuando el programa guarde resultados en la carpeta `salidas/`:
-```bash
-# 1. Listar los archivos generados con fechas y tamanos
-ls -la salidas/
-
-# 2. Ver el contenido de un archivo CSV generado de forma alineada en columnas
-column -t -s, salidas/flota_operativa.csv | head -n 15
-
-# 3. Ver las primeras lineas de un archivo Excel (.xls) para comprobar el encabezado XML
-head -n 20 salidas/flota_exportada.xls
-
-# 4. Abrir el archivo Excel (.xls) directamente en LibreOffice Calc (interfaz grafica)
-libreoffice salidas/flota_exportada.xls &
-
-# 5. Abrir una imagen PNG generada en el visor predeterminado de Kali Linux
-xdg-open salidas/victorias_por_faccion.png &
-# O con el visor liviano Ristretto habitual en Kali:
-ristretto salidas/victorias_por_faccion.png &
-```
-
-### 8.6 Ejecución y Revisión de Pruebas Automatizadas
-Para demostrar ante el docente que la suite de pruebas valida el sistema al 100%:
-```bash
-# Ejecutar toda la suite (61 pruebas unitarias e integrales)
-make test
-
-# Ejecutar mediante el runner propio del proyecto
-python3 run_tests.py --all
-
-# Ejecutar unicamente las pruebas del analizador lexico
-make test-lexer
-
-# Ejecutar unicamente las pruebas sintacticas validas
-make test-parser
-
-# Ejecutar unicamente las pruebas semanticas y del interprete Visitor
-make test-semantic
-
-# Ejecutar un archivo de prueba puntual directamente con unittest
-python3 -m unittest tests/test_semantic_execution.py -v
-python3 -m unittest tests/test_io_engine.py -v
-python3 -m unittest tests/test_math_engine.py -v
-```
-
-### 8.7 Gestión del Entorno Virtual en Linux
-En caso de clonar o ejecutar en una máquina virtual limpia de Kali:
-```bash
-# Activar el entorno virtual si ya esta creado
-source .venv/bin/activate
-
-# Instalar dependencias si se clono recientemente
-make install
-
-# Limpiar archivos temporales y caches de Python (__pycache__)
-make clean
-```
+### Pregunta 15: "Durante la sustentación, modifique el caso de estudio para cambiar la variable dependiente de la regresión o agregar una condición de filtro."
+* **Acción paso a paso del estudiante:**  
+  1. Abrir el archivo con `nano examples/06_caso_estudio_final.holo`.
+  2. Localizar la instrucción `trazar_regresion`:
+     ```holocron
+     modelo_nuevo = red_operativa
+         |> trazar_regresion [
+             eje_x = "distancia_parsecs",
+             eje_y = "tasa_perdida",
+             destino = "perdida_estimada"
+         ]
+     ```
+  3. Guardar con `Ctrl + O`, `Enter` y salir con `Ctrl + X`.
+  4. Ejecutar: `python3 holocron.py examples/06_caso_estudio_final.holo`.
+  5. Señalar en la consola los nuevos coeficientes calculados para el modelo ajustado y la generación exitosa de los reportes.

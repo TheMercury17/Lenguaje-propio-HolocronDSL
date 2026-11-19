@@ -60,6 +60,25 @@ class TestIntegrationExamples(unittest.TestCase):
         self.assertTrue(salida_csv2.is_file())
         self.assertTrue(salida_png.is_file())
 
+    def test_ejemplo_06_caso_estudio_final(self):
+        interp = self._ejecutar_archivo("examples/06_caso_estudio_final.holo")
+        salida_csv = Path("salidas/caso_estudio_resumen_sectores.csv")
+        salida_xls = Path("salidas/caso_estudio_predicciones.xls")
+        png1 = Path("salidas/caso_estudio_01_barras_sectores.png")
+        png2 = Path("salidas/caso_estudio_02_histograma_latencia.png")
+        png3 = Path("salidas/caso_estudio_03_caja_ancho_banda.png")
+        png4 = Path("salidas/caso_estudio_04_lineas_degradacion.png")
+        png5 = Path("salidas/caso_estudio_05_regresion_latencia.png")
+
+        self.assertTrue(salida_csv.is_file())
+        self.assertTrue(salida_xls.is_file())
+        self.assertTrue(png1.is_file())
+        self.assertTrue(png2.is_file())
+        self.assertTrue(png3.is_file())
+        self.assertTrue(png4.is_file())
+        self.assertTrue(png5.is_file())
+        self.assertTrue(len(interp.transmisiones) > 0)
+
 
 if __name__ == "__main__":
     unittest.main()

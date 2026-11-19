@@ -5,7 +5,7 @@ from typing import List, Dict, Any, Callable, Optional, Tuple, Union
 from pathlib import Path
 from src.runtime.math_engine import HolocronMath
 from src.runtime.io_engine import HolocronIO
-from src.errors.semantic_error import ColumnaInexistenteError
+from src.errors.semantic_error import ColumnaInexistenteError, HolocronSemanticError
 
 
 class HolocronTable:
@@ -295,6 +295,60 @@ class HolocronTable:
         else:
             raise ValueError(f"Funcion de agregacion desconocida: '{func_nombre}'.")
 
+    def trazar_regresion(
+        self,
+        col_x: str,
+        col_y: str,
+        col_destino: Optional[str] = None,
+        linea: Optional[int] = None,
+        columna: Optional[int] = None
+    ) -> "HolocronRegressionResult":
+        """
+        Calcula un modelo de regresion lineal simple entre col_x (predictora) y col_y (respuesta).
+        Genera una nueva tabla enriquecida con la columna de predicciones calculadas.
+        """
+        self.validar_columna(col_x, linea, columna)
+        self.validar_columna(col_y, linea, columna)
+
+        valores_x = self.obtener_columna(col_x)
+        valores_y = self.obtener_columna(col_y)
+
+        try:
+            modelo = HolocronMath.regresion_lineal(valores_x, valores_y)
+        except Exception as e:
+            raise HolocronSemanticError(
+                f"Error al calcular regresion lineal entre '{col_x}' y '{col_y}': {str(e)}",
+                linea, columna
+            )
+
+        nombre_pred = col_destino if col_destino else f"pred_{col_y}"
+        m = modelo["pendiente"]
+        b = modelo["intercepto"]
+
+        nuevas_filas = []
+        for f in self.filas:
+            fila_copia = dict(f)
+            val_x = f.get(col_x)
+            if val_x is not None and isinstance(val_x, (int, float)):
+                fila_copia[nombre_pred] = round(m * float(val_x) + b, 4)
+            else:
+                fila_copia[nombre_pred] = None
+            nuevas_filas.append(fila_copia)
+
+        nuevas_cols = list(self.columnas)
+        if nombre_pred not in nuevas_cols:
+            nuevas_cols.append(nombre_pred)
+
+        return HolocronRegressionResult(
+            columnas=nuevas_cols,
+            filas=nuevas_filas,
+            modelo=modelo,
+            col_x=col_x,
+            col_y=col_y,
+            col_prediccion=nombre_pred,
+            nombre=f"{self.nombre}_regresion"
+        )
+
     def archivar(self, ruta: str, delimitador: str = ",") -> str:
         """
         Persiste la tabla en disco utilizando la biblioteca propia HolocronIO.
@@ -422,3 +476,58 @@ class HolocronGroupedTable:
             filas=filas_resumen,
             nombre=f"{self.tabla_origen.nombre}_resumen_grupos"
         )
+
+
+class HolocronRegressionResult(HolocronTable):
+    """
+    Representa el resultado de una operacion de regresion lineal en HolocronDSL.
+    Encapsula tanto el modelo matematico ajustado (parametros, R^2, ecuacion)
+    como la tabla enriquecida con los valores predichos, permitiendo continuar
+    encadenando operaciones en el pipeline.
+    """
+
+    def __init__(
+        self,
+        columnas: List[str],
+        filas: List[Dict[str, Any]],
+        modelo: Dict[str, Any],
+        col_x: str,
+        col_y: str,
+        col_prediccion: str,
+        nombre: str = "holocron_regresion"
+    ):
+        super().__init__(columnas, filas, nombre)
+        self.modelo = modelo
+        self.col_x = col_x
+        self.col_y = col_y
+        self.col_prediccion = col_prediccion
+
+    def a_cadena_resumen_modelo(self) -> str:
+        """Formatea las metricas del modelo ajustado en una tabla ASCII para la terminal."""
+        m = self.modelo
+        ancho = 64
+        sep = "+" + "-" * (ancho - 2) + "+"
+        lineas = [
+            sep,
+            f"|{'MODELO DE REGRESION LINEAL (AJUSTE MCO)':^{ancho - 2}}|",
+            sep,
+            f"| Variable Independiente (X) : {self.col_x:<{ancho - 33}}|",
+            f"| Variable Dependiente   (Y) : {self.col_y:<{ancho - 33}}|",
+            f"| Registros Analizados   (N) : {str(m['n']):<{ancho - 33}}|",
+            sep,
+            f"| Ecuacion de la Recta       : {m['ecuacion']:<{ancho - 33}}|",
+            f"| Pendiente (m)              : {str(m['pendiente']):<{ancho - 33}}|",
+            f"| Intercepto (b)             : {str(m['intercepto']):<{ancho - 33}}|",
+            f"| Coef. Determinacion (R^2)  : {str(m['r_cuadrado']):<{ancho - 33}}|",
+            f"| Correlacion de Pearson (r) : {str(m['correlacion']):<{ancho - 33}}|",
+            f"| Error Estandar             : {str(m['error_estandar']):<{ancho - 33}}|",
+            sep,
+            f"| Columna de Prediccion      : '{self.col_prediccion}' agregada a la tabla|",
+            sep
+        ]
+        return "\n".join(lineas)
+
+    def a_cadena_tabular(self, max_filas: int = 15) -> str:
+        """Presenta tanto el cuadro resumen del modelo como la tabla de observaciones enriquecida."""
+        return self.a_cadena_resumen_modelo() + "\n\n" + super().a_cadena_tabular(max_filas)
+

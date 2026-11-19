@@ -129,6 +129,21 @@ class HolocronDSLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by HolocronDSLParser#operacionRegresion.
+    def visitOperacionRegresion(self, ctx:HolocronDSLParser.OperacionRegresionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#sentenciaRegresion.
+    def visitSentenciaRegresion(self, ctx:HolocronDSLParser.SentenciaRegresionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by HolocronDSLParser#parametroRegresion.
+    def visitParametroRegresion(self, ctx:HolocronDSLParser.ParametroRegresionContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by HolocronDSLParser#sentenciaArchivado.
     def visitSentenciaArchivado(self, ctx:HolocronDSLParser.SentenciaArchivadoContext):
         return self.visitChildren(ctx)

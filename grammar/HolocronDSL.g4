@@ -22,6 +22,7 @@ sentencia
     | sentenciaHolograma
     | sentenciaCondicional
     | sentenciaTransmision
+    | sentenciaRegresion
     ;
 
 // -- Definicion de funciones (Misiones) --
@@ -69,6 +70,7 @@ operacionPipeline
     | operacionSanarVacios
     | operacionAgrupar
     | operacionResumir
+    | operacionRegresion
     ;
 
 operacionSeleccionar
@@ -137,6 +139,22 @@ llamadaAgregacion
     | FUNC_DESVIACION LPAREN ID RPAREN
     ;
 
+operacionRegresion
+    : TRAZAR_REGRESION LBRACK? parametroRegresion (COMMA parametroRegresion)* RBRACK?
+    ;
+
+sentenciaRegresion
+    : TRAZAR_REGRESION ID LBRACK? parametroRegresion (COMMA parametroRegresion)* RBRACK?
+    ;
+
+parametroRegresion
+    : EJE_X OP_ASIG ID
+    | EJE_Y OP_ASIG ID
+    | DESTINO OP_ASIG ID
+    | ID OP_ASIG ID
+    | ID
+    ;
+
 // -- Persistencia de datos en disco --
 sentenciaArchivado
     : ARCHIVAR_HOLOCRON ID EN CADENA (DELIMITADO_POR CADENA)?
@@ -145,7 +163,7 @@ sentenciaArchivado
 // -- Proyeccion holografica (Graficos) --
 sentenciaHolograma
     : HOLOGRAMA tipoGrafica ID
-        propiedadHolograma*
+        LBRACK? propiedadHolograma* RBRACK?
       FIN_HOLOGRAMA?
     ;
 
@@ -155,13 +173,14 @@ tipoGrafica
     | TIPO_DISPERSION
     | TIPO_HISTOGRAMA
     | TIPO_CAJA
+    | TIPO_REGRESION
     ;
 
 propiedadHolograma
-    : EJE_X CADENA
-    | EJE_Y CADENA
-    | TITULO CADENA
-    | GUARDAR CADENA
+    : EJE_X OP_ASIG? CADENA COMMA?
+    | EJE_Y OP_ASIG? CADENA COMMA?
+    | TITULO OP_ASIG? CADENA COMMA?
+    | GUARDAR OP_ASIG? CADENA COMMA?
     ;
 
 // -- Condicional de la Fuerza --
@@ -274,6 +293,8 @@ DESCARTAR               : 'descartar';
 CON                     : 'con' | 'sustituir_con';
 AGRUPAR                 : 'agrupar' | 'agrupar_sector';
 RESUMIR                 : 'resumir' | 'sintetizar' | 'sintetizar_indicadores';
+TRAZAR_REGRESION        : 'trazar_regresion' | 'sintonizar_trayectoria' | 'regresion_lineal' | 'predecir_tendencia';
+DESTINO                 : 'destino' | 'guardar_prediccion' | 'guardar_en';
 
 // -- Funciones de agregacion estadistica --
 FUNC_RECUENTO           : 'recuento' | 'conteo';
@@ -292,6 +313,7 @@ TIPO_LINEAS             : 'lineas';
 TIPO_DISPERSION         : 'dispersion';
 TIPO_HISTOGRAMA         : 'histograma';
 TIPO_CAJA               : 'caja' | 'cajas';
+TIPO_REGRESION          : 'regresion' | 'tendencia';
 EJE_X                   : 'eje_x';
 EJE_Y                   : 'eje_y';
 TITULO                  : 'titulo' | 'holotitulo';

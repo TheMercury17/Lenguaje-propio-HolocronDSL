@@ -224,6 +224,33 @@ class HolocronDSLListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by HolocronDSLParser#operacionRegresion.
+    def enterOperacionRegresion(self, ctx:HolocronDSLParser.OperacionRegresionContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#operacionRegresion.
+    def exitOperacionRegresion(self, ctx:HolocronDSLParser.OperacionRegresionContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#sentenciaRegresion.
+    def enterSentenciaRegresion(self, ctx:HolocronDSLParser.SentenciaRegresionContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#sentenciaRegresion.
+    def exitSentenciaRegresion(self, ctx:HolocronDSLParser.SentenciaRegresionContext):
+        pass
+
+
+    # Enter a parse tree produced by HolocronDSLParser#parametroRegresion.
+    def enterParametroRegresion(self, ctx:HolocronDSLParser.ParametroRegresionContext):
+        pass
+
+    # Exit a parse tree produced by HolocronDSLParser#parametroRegresion.
+    def exitParametroRegresion(self, ctx:HolocronDSLParser.ParametroRegresionContext):
+        pass
+
+
     # Enter a parse tree produced by HolocronDSLParser#sentenciaArchivado.
     def enterSentenciaArchivado(self, ctx:HolocronDSLParser.SentenciaArchivadoContext):
         pass

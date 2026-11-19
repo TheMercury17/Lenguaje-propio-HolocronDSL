@@ -222,27 +222,33 @@ A continuacion se presenta la totalidad del lexico reservado de HolocronDSL, cla
 | **`abrir_holocron`** | Entrada de datos | Lee un archivo CSV y lo carga como tabla en memoria. | `datos = abrir_holocron "flota.csv"` |
 | **`archivar`** | Salida de datos | Exporta y guarda una tabla procesada en un archivo CSV en disco. | `archivar mi_tabla en "salida.csv"` |
 | **`en`** | Conector | Especifica la ruta destino para la sentencia `archivar`. | `archivar datos en "reporte.csv"` |
-| **`revelar`** | Salida de consola | Imprime un texto, numero o tabla directamente en la terminal. | `revelar "Mision finalizada con exito"` |
+| **`transmitir`** | Salida de consola | Imprime un texto, numero, tabla o modelo de regresion con formato en la terminal. | `transmitir "Mision completada"` |
+| **`trazar_regresion`** | Modelado estadistico | Ajusta una regresion lineal simple OLS sobre dos variables numericas y genera predicciones. | `tabla \|> trazar_regresion [eje_x = "distancia", eje_y = "latencia", destino = "pred"]` |
 | **`inspeccionar`** | Exploracion | Muestra el esquema de la tabla (columnas y tipos de datos detectados). | `inspeccionar flota` |
 | **`purgar donde`** | Transformacion | Filtra filas conservando unicamente aquellas que satisfacen la condicion. | `tabla \|> purgar donde escudos > 80` |
 | **`eliminar_clones`** | Limpieza | Remueve registros repetidos o filas duplicadas de la tabla. | `tabla \|> eliminar_clones` |
 | **`sanar_vacios con`**| Limpieza | Imputa y rellena celdas vacias o valores faltantes (NaN/null). | `tabla \|> sanar_vacios con 0` |
-| **`seleccionar`** | Proyeccion | Conserva exclusivamente las columnas listadas entre corchetes. | `tabla \|> seleccionar [nave, piloto]` |
+| **`revelar`** | Proyeccion | Conserva exclusivamente las columnas listadas entre corchetes. | `tabla \|> revelar [nave, piloto]` |
 | **`forjar`** | Calculo | Genera e inserta una columna nueva calculada mediante una expresion. | `tabla \|> forjar blindaje = escudos * 1.2` |
 | **`ordenar por`** | Ordenamiento | Reorganiza las filas segun los valores de la columna indicada. | `tabla \|> ordenar por velocidad desc` |
-| **`asc` / `desc`** | Sentido de orden | Modificador para orden ascendente (menor a mayor) o descendente. | `ordenar por bajas desc` |
+| **`ascendente` / `descendente`** | Sentido de orden | Modificador para orden ascendente (menor a mayor) o descendente. | `ordenar por bajas descendente` |
 | **`agrupar por`** | Agrupacion | Particiona las filas en grupos segun una o mas columnas categoricas. | `tabla \|> agrupar por [faccion]` |
-| **`resumir`** | Agregacion | Calcula metricas agregadas (`promedio`, `suma`, `conteo`, `min`, `max`). | `resumir [media = promedio(potencia)]` |
-| **`limitar`** | Paginacion | Restringe la tabla a las primeras N filas indicadas. | `tabla \|> limitar 10` |
-| **`holograma`** | Visualizacion | Declara la construccion de una representacion grafica estatica (PNG). | `holograma barras datos x: "f", y: "v", salida: "g.png"` |
-| **`barras`** | Tipo de grafico | Grafico de barras para comparar cantidades por categoria. | `holograma barras datos ...` |
-| **`dispersion`** | Tipo de grafico | Grafico de dispersion de puntos para correlacion de variables. | `holograma dispersion datos ...` |
-| **`lineas`** | Tipo de grafico | Grafico de lineas continuas para analizar tendencias continuas o temporales. | `holograma lineas datos ...` |
-| **`histograma`** | Tipo de grafico | Grafico de distribucion de frecuencias numericas por intervalos. | `holograma histograma datos ...` |
-| **`si la_fuerza`** | Control condicional | Inicia una bifurcacion logica basada en una condicion booleana. | `si la_fuerza (nivel > 5) entonces` |
-| **`entonces`** | Conector condicional | Marca el bloque de codigo a ejecutar si la condicion es verdadera. | `si la_fuerza (condicion) entonces` |
-| **`sino`** | Rama alternativa | Marca el bloque de codigo alternativo si la condicion no se cumplio. | `sino ... fin_fuerza` |
-| **`fin_fuerza`** | Cierre de bloque | Marca la terminacion formal del bloque condicional. | `fin_fuerza` |
+| **`resumir`** | Agregacion | Aplica funciones de resumen (`equilibrio`, `acumular`, `recuento`, `cenit`, `nadir`, `desviacion`). | `resumir media = equilibrio(potencia)` |
+| **`recuento` / `conteo`** | Agregacion | Cuenta el numero de filas de cada grupo particionado. | `n_naves = recuento()` |
+| **`equilibrio` / `promedio`** | Agregacion | Calcula la media aritmetica de la columna numerica especificada. | `media = equilibrio(escudos)` |
+| **`acumular` / `suma`** | Agregacion | Calcula la sumatoria acumulada de la columna numerica. | `total = acumular(combustible)` |
+| **`cenit` / `maximo`** | Agregacion | Obtiene el valor maximo registrado en la columna. | `techo = cenit(velocidad)` |
+| **`nadir` / `minimo`** | Agregacion | Obtiene el valor minimo registrado en la columna. | `piso = nadir(latencia)` |
+| **`proyectar_holograma`** | Visualizacion | Declara la construccion de una representacion grafica PNG de 300 DPI sin SVG. | `proyectar_holograma barras datos [eje_x = "f", eje_y = "v", guardar_en = "g.png"]` |
+| **`barras`** | Tipo de grafico | Grafico de barras para comparar cantidades por categoria. | `proyectar_holograma barras datos [...]` |
+| **`histograma`** | Tipo de grafico | Grafico de distribucion de frecuencias numericas por intervalos. | `proyectar_holograma histograma datos [...]` |
+| **`caja`** | Tipo de grafico | Diagrama de caja y bigotes (boxplot) para dispersion y cuartiles. | `proyectar_holograma caja datos [...]` |
+| **`lineas`** | Tipo de grafico | Grafico de lineas continuas para tendencias o series ordenadas. | `proyectar_holograma lineas datos [...]` |
+| **`regresion` / `tendencia`** | Tipo de grafico | Dispersion con linea de regresion lineal OLS, ecuacion y R^2. | `proyectar_holograma regresion datos [...]` |
+| **`evaluar_fuerza`** | Control condicional | Inicia una bifurcacion logica basada en una condicion booleana. | `evaluar_fuerza (nivel > 5)` |
+| **`senda_luminosa`** | Rama afirmativa | Bloque a ejecutar en caso de que la condicion evaluada sea verdadera. | `senda_luminosa: ...` |
+| **`senda_oscura`** | Rama alternativa | Bloque alternativo a ejecutar en caso de que la condicion sea falsa. | `senda_oscura: ...` |
+| **`fin_evaluar`** | Cierre condicional | Marca la conclusion formal del bloque condicional evaluado. | `fin_evaluar` |
 | **`mision`** | Subrutina / Funcion | Define una rutina parametrizada y reutilizable con nombre propio. | `mision calcular_danio(base, factor)` |
 | **`retornar`** | Retorno de valor | Devuelve un resultado computado hacia el llamador de la mision. | `retornar base * factor` |
 | **`fin_mision`** | Cierre de funcion | Marca la conclusion de la declaracion de una mision. | `fin_mision` |
@@ -271,6 +277,10 @@ Lenguaje propio/
 │   ├── catalogo_instrucciones.md   # Catalogo de palabras reservadas y semantica
 │   ├── gramatica_ebnf.md           # Gramatica formal en notacion EBNF
 │   ├── manual_programacion.md      # Manual tutorial intuitivo para principiantes
+│   ├── manual_usuario.md           # Manual de usuario final para ejecucion y CLI
+│   ├── manual_tecnico.md           # Manual tecnico de arquitectura, runtime y AST
+│   ├── caso_estudio.md             # Informe formal del caso de estudio (8 puntos)
+│   ├── guia_de_estudio.md          # Guia de estudio y banco de preguntas para sustentacion
 │   ├── piedra_rosetta.md           # Matriz exhaustiva de equivalencias y traduccion
 │   └── reglas_semanticas.md        # Especificacion formal de reglas semanticas y motores
 ├── holocron.py                     # Lanzador e interprete rapido en la raiz
@@ -291,28 +301,31 @@ Lenguaje propio/
 │   │   └── visitor.py              # Interprete evaluador basado en patron Visitor
 │   └── runtime/                    # Bibliotecas propias del lenguaje
 │       ├── __init__.py
-│       ├── holocron_table.py       # Estructura tabular inmutable (HolocronTable)
-│       ├── io_engine.py            # Motor propio de I/O de archivos CSV (HolocronIO)
-│       ├── math_engine.py          # Biblioteca de calculo matematico/estadistico (HolocronMath)
-│       └── graphics_engine.py      # Motor de renderizado PNG galactico sin SVG (HolocronPlotter)
+│       ├── holocron_table.py       # Estructura tabular inmutable y HolocronRegressionResult
+│       ├── io_engine.py            # Motor propio de I/O CSV y XML Spreadsheet 2003 (.xls)
+│       ├── math_engine.py          # Biblioteca matematica, estadistica y regresion OLS
+│       └── graphics_engine.py      # Motor de renderizado PNG a 300 DPI sin SVG (HolocronPlotter)
 ├── examples/
 │   ├── datos/
-│   │   └── telemetria_flota.csv    # Conjunto de datos de prueba
+│   │   ├── telemetria_flota.csv    # Conjunto de datos de prueba (fase 1 y 2)
+│   │   └── telemetria_redes_galacticas.csv # Datos de telemetria del caso de estudio (fase 3)
 │   ├── 01_telemetria_cazas.holo    # Flujo basico de carga, seleccion, filtro y archivado
 │   ├── 02_censo_galactico.holo     # Agrupamiento por faccion y funciones estadisticas
 │   ├── 03_proyeccion_holografica.holo # Bloques declarativos de graficos holograficos PNG
 │   ├── 04_mision_avanzada.holo     # Abstraccion con misiones y evaluacion condicional
-│   └── 05_proyecto_completo.holo   # Flujo tactico integral paso a paso
+│   ├── 05_proyecto_completo.holo   # Flujo tactico integral paso a paso
+│   └── 06_caso_estudio_final.holo  # Caso de estudio: telemetria, regresion lineal y 5 graficos
 ├── salidas/                        # Artefactos reales generados por el interprete
 │   ├── flota_operativa.csv
 │   ├── resumen_facciones.csv
-│   ├── escuadron_aprobado.csv
-│   ├── escuadron_activo.csv
-│   ├── resumen_estrategico.csv
-│   ├── victorias_por_faccion.png
-│   ├── escudos_vs_victorias.png
-│   ├── distribucion_escudos.png
-│   └── naves_operativas.png
+│   ├── caso_estudio_resumen_sectores.csv
+│   ├── caso_estudio_predicciones.xls
+│   ├── caso_estudio_01_barras_sectores.png
+│   ├── caso_estudio_02_histograma_latencia.png
+│   ├── caso_estudio_03_caja_ancho_banda.png
+│   ├── caso_estudio_04_lineas_degradacion.png
+│   ├── caso_estudio_05_regresion_latencia.png
+│   └── ...
 └── tests/
     ├── __init__.py
     ├── test_lexer.py               # Pruebas unitarias de tokens y terminales
@@ -324,7 +337,8 @@ Lenguaje propio/
     ├── test_symbol_table.py        # Pruebas de ambitos y tabla de simbolos
     ├── test_semantic_errors.py     # Pruebas de deteccion de anomalias semanticas
     ├── test_semantic_execution.py  # Pruebas de ejecucion de sentencias y pipelines
-    └── test_integration_examples.py# Pruebas integrales de los 5 programas galacticos
+    ├── test_regression.py          # Pruebas de regresion lineal OLS y graficacion
+    └── test_integration_examples.py# Pruebas integrales de los 6 programas galacticos
 ```
 
 ---
@@ -342,17 +356,22 @@ Lenguaje propio/
   - 5 ejemplos galacticos documentados y suite de pruebas unitarias al 100% de aprobacion.
 
 - **Fase 2: Semantica y Procesamiento de Datos con Motores Propios (Completada):**
-  - Implementacion del patron Visitor en Python (`HolocronInterpreter`).
+  - Implementacion del patron Visitor en Python (`HolocronVisitor`).
   - Tabla de simbolos con gestion de ambitos locales y globales (`SymbolTable` y `Scope`).
   - Biblioteca propia de matematicas y estadistica descriptiva pura (`HolocronMath`).
   - Biblioteca propia de lectura, inferencia de tipos y serializacion CSV (`HolocronIO`).
+  - Soporte de exportacion a hojas de calculo nativas Excel (.xls) mediante XML Spreadsheet 2003.
   - Estructura de datos tabular inmutable (`HolocronTable` y `HolocronGroupedTable`).
-  - Motor grafico de proyeccion holografica exportando exclusivamente a **PNG** (`HolocronPlotter`), sin utilizar formato SVG.
+  - Motor grafico de proyeccion holografica exportando exclusivamente a **PNG** a 300 DPI (`HolocronPlotter`), sin utilizar formato SVG.
   - Captura y diagnostico de errores semanticos (variables inexistentes, columnas no encontradas, division por cero, tipos incompatibles, aridad de misiones).
-  - Suite de pruebas unitarias y de integracion ampliada a **59 pruebas con 100% de exito**.
-  - Ejecucion verificable de los 5 programas de ejemplo produciendo tablas CSV e imagenes PNG en `salidas/`.
-  - Documento de reglas semanticas y arquitectura en `docs/reglas_semanticas.md`.
+  - Pruebas unitarias y de integracion ampliadas.
 
-- **Fase 3: Visualizacion Avanzada, Integracion y Producto Final:**
-  - Ampliacion de estilos graficos y metricas de correlacion/regresion opcionales.
-  - Caso de estudio integral con datos reales y reporte final de investigacion.
+- **Fase 3: Visualizacion Avanzada, Modelado Estadistico y Producto Final (100% Completada):**
+  - Incorporacion de modelado de **Regresion Lineal Simple por Minimos Cuadrados Ordinarios (OLS)** con instruccion nativa `trazar_regresion` en pipeline.
+  - Calculo analitico de pendiente $m$, intercepto $b$, coeficiente de determinacion $R^2$, correlacion de Pearson $r$, residuos y error estandar.
+  - Subclase especializada `HolocronRegressionResult` que preserva la inmutabilidad tabular y permite encadenamientos posteriores.
+  - Soporte completo para 5 tipos de graficos PNG a 300 DPI: `barras`, `histograma`, `caja`, `lineas` y `regresion` (dispersion con recta ajustada y leyenda con $R^2$).
+  - Caso de estudio integral en telecomunicaciones galacticas (`examples/06_caso_estudio_final.holo`) con 30 nodos y 10 atributos.
+  - Generacion automatica de reportes consolidados en CSV, Excel nativo (.xls) y 5 graficos PNG en `salidas/`.
+  - Documentacion final exhaustiva: **Manual de Usuario** (`docs/manual_usuario.md`), **Manual Tecnico** (`docs/manual_tecnico.md`), **Informe de Caso de Estudio** (`docs/caso_estudio.md`) y **Guia de Estudio con Banco de Preguntas Orales** (`docs/guia_de_estudio.md`).
+  - Suite de pruebas de regresion e integracion ampliada a **69 pruebas automatizadas con 100% de aprobacion** en menos de 2 segundos.

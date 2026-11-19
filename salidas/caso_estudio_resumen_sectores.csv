@@ -1,0 +1,6 @@
+sector,total_nodos,ancho_banda_promedio,latencia_media,latencia_maxima,latencia_minima,dispersion_latencia,paquetes_totales
+Corellia,6,393.33,29.78,47.2,18.4,11.68,6368290
+Kuat,5,434.0,41.26,66.8,21.0,18.46,5948500
+Mandalore,5,282.0,60.58,88.4,35.2,21.0,3416200
+Tatooine,6,201.67,86.28,123.0,49.5,27.59,2612170
+Endor,6,180.0,95.33,134.2,58.1,28.52,2250950

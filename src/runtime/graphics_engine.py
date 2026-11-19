@@ -12,6 +12,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from src.runtime.holocron_table import HolocronTable
+from src.runtime.math_engine import HolocronMath
 from src.errors.semantic_error import ColumnaInexistenteError, HolocronSemanticError
 
 
@@ -105,9 +106,11 @@ class HolocronPlotter:
                 cls._generar_histograma(ax, tabla, eje_x, linea, columna)
             elif tipo_normalizado in ("caja", "cajas"):
                 cls._generar_caja(ax, tabla, eje_x, eje_y, linea, columna)
+            elif tipo_normalizado in ("regresion", "tendencia", "regresion_lineal"):
+                cls._generar_regresion(ax, tabla, eje_x, eje_y, linea, columna)
             else:
                 raise HolocronSemanticError(
-                    f"Tipo de holograma no soportado: '{tipo}'. Tipos validos: barras, lineas, dispersion, histograma, caja.",
+                    f"Tipo de holograma no soportado: '{tipo}'. Tipos validos: barras, lineas, dispersion, histograma, caja, regresion.",
                     linea, columna
                 )
 
@@ -242,3 +245,66 @@ class HolocronPlotter:
             medianprops=dict(color=cls.COLOR_ROJO, linewidth=2)
         )
         ax.set_xticklabels([col_medir])
+
+    @classmethod
+    def _generar_regresion(cls, ax, tabla: HolocronTable, eje_x: str, eje_y: str, linea, columna):
+        if not eje_x or not eje_y:
+            raise HolocronSemanticError("El holograma de regresion requiere 'eje_x' y 'eje_y'.", linea, columna)
+
+        tabla.validar_columna(eje_x, linea, columna)
+        tabla.validar_columna(eje_y, linea, columna)
+
+        crudos_x = tabla.obtener_columna(eje_x)
+        crudos_y = tabla.obtener_columna(eje_y)
+
+        puntos_x, puntos_y = HolocronMath.limpiar_pares_numericos(crudos_x, crudos_y)
+        if len(puntos_x) < 2:
+            raise HolocronSemanticError("Se requieren al menos dos puntos numericos para proyectar regresion.", linea, columna)
+
+        try:
+            modelo = HolocronMath.regresion_lineal(puntos_x, puntos_y)
+        except Exception as e:
+            raise HolocronSemanticError(f"No fue posible ajustar la regresion lineal: {str(e)}", linea, columna)
+
+        m = modelo["pendiente"]
+        b = modelo["intercepto"]
+        r2 = modelo["r_cuadrado"]
+        r = modelo["correlacion"]
+
+        # Puntos reales de dispersion
+        ax.scatter(
+            puntos_x,
+            puntos_y,
+            color=cls.COLOR_AMBAR,
+            edgecolors=cls.COLOR_ROJO,
+            s=80,
+            alpha=0.88,
+            linewidth=1.2,
+            label=f"Observaciones (N={len(puntos_x)})",
+            zorder=3
+        )
+
+        # Recta de regresion ajustada
+        min_x = min(puntos_x)
+        max_x = max(puntos_x)
+        margen = (max_x - min_x) * 0.05 if max_x != min_x else 1.0
+        linea_x = [min_x - margen, max_x + margen]
+        linea_y = [m * lx + b for lx in linea_x]
+
+        etiqueta_recta = f"Ajuste MCO: {modelo['ecuacion']}\n(R² = {r2:.4f}, r = {r:.4f})"
+        ax.plot(
+            linea_x,
+            linea_y,
+            color=cls.COLOR_CIAN,
+            linestyle="--",
+            linewidth=2.4,
+            label=etiqueta_recta,
+            zorder=4
+        )
+        ax.legend(
+            loc="best",
+            facecolor="#121824",
+            edgecolor=cls.COLOR_CIAN,
+            fontsize=9,
+            labelcolor="#E0E6ED"
+        )

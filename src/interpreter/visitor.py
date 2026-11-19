@@ -236,7 +236,78 @@ class HolocronInterpreter(HolocronDSLVisitor):
 
             return tabla_entrada.resumir(agregaciones, linea=linea, columna=columna)
 
+        # 9. Trazar Regresion / Sintonizar Trayectoria
+        elif op_ctx.operacionRegresion():
+            reg_ctx = op_ctx.operacionRegresion()
+            if isinstance(tabla_entrada, HolocronGroupedTable):
+                tabla_entrada = tabla_entrada.tabla_origen
+
+            col_x, col_y, col_destino = self._extraer_parametros_regresion(
+                reg_ctx.parametroRegresion(), linea, columna
+            )
+            return tabla_entrada.trazar_regresion(
+                col_x=col_x,
+                col_y=col_y,
+                col_destino=col_destino,
+                linea=linea,
+                columna=columna
+            )
+
         raise OperacionInvalidaError(op_ctx.getText(), type(tabla_entrada).__name__, linea, columna)
+
+    def _extraer_parametros_regresion(
+        self,
+        lista_params,
+        linea: int,
+        columna: int
+    ) -> Tuple[str, str, Optional[str]]:
+        """
+        Extrae col_x, col_y y opcionalmente col_destino de la lista de nodos parametroRegresion.
+        Admite tanto formato clave-valor (eje_x = col, x = col, destino = col) como formato posicional.
+        """
+        col_x = None
+        col_y = None
+        col_destino = None
+        posicionales: List[str] = []
+
+        for p_ctx in lista_params:
+            if p_ctx.OP_ASIG():
+                clave = p_ctx.start.text.lower()
+                tokens_id = p_ctx.ID()
+                val = tokens_id[-1].getText() if tokens_id else p_ctx.getText().split("=")[-1].strip()
+
+                if clave in ("eje_x", "x", "var_x", "independiente", "x_var"):
+                    col_x = val
+                elif clave in ("eje_y", "y", "var_y", "dependiente", "y_var", "respuesta"):
+                    col_y = val
+                elif clave in ("destino", "guardar_prediccion", "guardar_en", "como", "prediccion"):
+                    col_destino = val
+                else:
+                    posicionales.append(val)
+            else:
+                if p_ctx.ID():
+                    txt_id = p_ctx.ID().getText() if not isinstance(p_ctx.ID(), list) else p_ctx.ID()[0].getText()
+                    posicionales.append(txt_id)
+
+        idx_pos = 0
+        if not col_x and idx_pos < len(posicionales):
+            col_x = posicionales[idx_pos]
+            idx_pos += 1
+        if not col_y and idx_pos < len(posicionales):
+            col_y = posicionales[idx_pos]
+            idx_pos += 1
+        if not col_destino and idx_pos < len(posicionales):
+            col_destino = posicionales[idx_pos]
+            idx_pos += 1
+
+        if not col_x or not col_y:
+            raise HolocronSemanticError(
+                "La operacion de regresion requiere especificar tanto la variable X como la variable Y "
+                "(por ejemplo: trazar_regresion [ eje_x = escudos, eje_y = victorias ]).",
+                linea, columna
+            )
+
+        return col_x, col_y, col_destino
 
     def _extraer_identificadores(self, ctx_opcional: HolocronDSLParser.ListaIdentificadoresOpcionalContext) -> List[str]:
         if ctx_opcional.listaIdentificadores():
@@ -379,6 +450,35 @@ class HolocronInterpreter(HolocronDSLVisitor):
         print(f"  -> Titulo: {propiedades.get('titulo', 'Sin titulo')}")
         print(f"  -> Ubicacion absoluta: {ruta_png}")
         return ruta_png
+
+    def visitSentenciaRegresion(self, ctx: HolocronDSLParser.SentenciaRegresionContext):
+        nombre_var = ctx.ID().getText()
+        linea = ctx.start.line
+        columna = ctx.start.column
+
+        valor = self.symbol_table.obtener_valor(nombre_var, linea=linea, columna=columna)
+        if not isinstance(valor, HolocronTable):
+            if isinstance(valor, HolocronGroupedTable):
+                valor = valor.tabla_origen
+            else:
+                raise OperacionInvalidaError("trazar_regresion", type(valor).__name__, linea, columna)
+
+        col_x, col_y, col_destino = self._extraer_parametros_regresion(
+            ctx.parametroRegresion(), linea, columna
+        )
+        resultado = valor.trazar_regresion(
+            col_x=col_x,
+            col_y=col_y,
+            col_destino=col_destino,
+            linea=linea,
+            columna=columna
+        )
+        self.symbol_table.definir(nombre_var, resultado, linea=linea, columna=columna)
+        m = resultado.modelo
+        print(f"[Holocron Regresion] Modelo ajustado para '{nombre_var}':")
+        print(f"  -> Ecuacion: {m['ecuacion']}")
+        print(f"  -> R^2: {m['r_cuadrado']} | Pearson r: {m['correlacion']}")
+        return resultado
 
     # -------------------------------------------------------------------------
     # CONTROL DE FLUJO Y TRANSMISION

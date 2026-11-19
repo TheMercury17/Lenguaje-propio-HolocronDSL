@@ -143,6 +143,7 @@ def main():
     parser.add_argument("--invalid", action="store_true", help="Ejecuta unicamente las pruebas sintacticas negativas")
     parser.add_argument("--engines", action="store_true", help="Ejecuta pruebas de bibliotecas propias (Math, IO, Table)")
     parser.add_argument("--semantic", action="store_true", help="Ejecuta pruebas semanticas y de tabla de simbolos")
+    parser.add_argument("--regression", action="store_true", help="Ejecuta pruebas de modelado y regresion lineal")
     parser.add_argument("--examples", action="store_true", help="Verifica la sintaxis de ejemplos en examples/")
     parser.add_argument("--run", action="store_true", help="Ejecuta los ejemplos generando artefactos en salidas/")
     parser.add_argument("--grammar", action="store_true", help="Compila la gramatica ANTLR4")
@@ -151,7 +152,7 @@ def main():
     args = parser.parse_args()
 
     # Si no se indica opcion, ejecutar todas las pruebas unitarias
-    if not (args.lexer or args.parser or args.invalid or args.engines or args.semantic or args.examples or args.run or args.grammar or args.all):
+    if not (args.lexer or args.parser or args.invalid or args.engines or args.semantic or args.regression or args.examples or args.run or args.grammar or args.all):
         exito = ejecutar_todos_los_tests()
         sys.exit(0 if exito else 1)
 
@@ -176,6 +177,8 @@ def main():
             ejecutar_modulo_pruebas("tests.test_semantic_errors") and
             ejecutar_modulo_pruebas("tests.test_semantic_execution")
         ) and exito
+    if args.regression:
+        exito = ejecutar_modulo_pruebas("tests.test_regression") and exito
     if args.examples:
         exito = verificar_ejemplos() and exito
     if args.run:

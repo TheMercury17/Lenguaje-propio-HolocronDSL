@@ -40,18 +40,19 @@ ANTLR4 ?= antlr4
 .PHONY: help install prepare grammar test test-lexer test-parser test-invalid test-engines test-semantic run-examples check-examples clean
 
 help:
-	@echo "Comandos disponibles para HolocronDSL (Fase 2 - Semantica y Motores Propios):"
-	@echo "  make install        - Instalar dependencias (crea entorno virtual .venv automaticamente en Linux)"
-	@echo "  make grammar        - Compilar la gramatica ANTLR4 a codigo Python en src/generated"
-	@echo "  make test           - Ejecutar la suite completa de pruebas unitarias (59 pruebas)"
-	@echo "  make test-lexer     - Ejecutar pruebas del analizador lexico"
-	@echo "  make test-parser    - Ejecutar pruebas sintacticas de construcciones validas"
-	@echo "  make test-invalid   - Ejecutar pruebas sintacticas negativas (deteccion de errores)"
-	@echo "  make test-engines   - Ejecutar pruebas de las bibliotecas propias (Math, IO, Table)"
-	@echo "  make test-semantic  - Ejecutar pruebas del interprete Visitor y errores semanticos"
-	@echo "  make run-examples   - Ejecutar los 5 programas .holo generando CSVs y PNGs en salidas/"
-	@echo "  make check-examples - Validar sintacticamente todos los programas .holo en examples/"
-	@echo "  make clean          - Limpiar caches de Python y archivos temporales"
+	@echo "Comandos disponibles para HolocronDSL (Fase 3 - Entrega Final):"
+	@echo "  make install         - Instalar dependencias (crea entorno virtual .venv automaticamente en Linux)"
+	@echo "  make grammar         - Compilar la gramatica ANTLR4 a codigo Python en src/generated"
+	@echo "  make test            - Ejecutar la suite completa de pruebas unitarias (68+ pruebas)"
+	@echo "  make test-lexer      - Ejecutar pruebas del analizador lexico"
+	@echo "  make test-parser     - Ejecutar pruebas sintacticas de construcciones validas"
+	@echo "  make test-invalid    - Ejecutar pruebas sintacticas negativas (deteccion de errores)"
+	@echo "  make test-engines    - Ejecutar pruebas de las bibliotecas propias (Math, IO, Table)"
+	@echo "  make test-semantic   - Ejecutar pruebas del interprete Visitor y errores semanticos"
+	@echo "  make test-regression - Ejecutar pruebas de correlacion y regresion lineal MCO"
+	@echo "  make run-examples    - Ejecutar todos los programas .holo generando CSVs, XLS y PNGs en salidas/"
+	@echo "  make check-examples  - Validar sintacticamente todos los programas .holo en examples/"
+	@echo "  make clean           - Limpiar caches de Python y archivos temporales"
 
 install:
 ifeq ($(OS),Windows_NT)
@@ -108,12 +109,16 @@ test-engines: prepare
 test-semantic: prepare
 	$(PYTHON) -m unittest tests/test_symbol_table.py tests/test_semantic_errors.py tests/test_semantic_execution.py
 
+test-regression: prepare
+	$(PYTHON) -m unittest tests/test_regression.py
+
 run-examples: prepare
 	$(PYTHON) src/cli.py examples/01_telemetria_cazas.holo
 	$(PYTHON) src/cli.py examples/02_censo_galactico.holo
 	$(PYTHON) src/cli.py examples/03_proyeccion_holografica.holo
 	$(PYTHON) src/cli.py examples/04_mision_avanzada.holo
 	$(PYTHON) src/cli.py examples/05_proyecto_completo.holo
+	$(PYTHON) src/cli.py examples/06_caso_estudio_final.holo
 
 check-examples: prepare
 	$(PYTHON) src/cli.py examples/01_telemetria_cazas.holo --check
@@ -121,6 +126,7 @@ check-examples: prepare
 	$(PYTHON) src/cli.py examples/03_proyeccion_holografica.holo --check
 	$(PYTHON) src/cli.py examples/04_mision_avanzada.holo --check
 	$(PYTHON) src/cli.py examples/05_proyecto_completo.holo --check
+	$(PYTHON) src/cli.py examples/06_caso_estudio_final.holo --check
 
 clean:
 	$(PYTHON_SYS) -c "import pathlib, shutil; [shutil.rmtree(p, ignore_errors=True) for p in pathlib.Path('.').rglob('__pycache__')]"

@@ -1,0 +1,105 @@
+-- =============================================================================
+-- Caso de Estudio Final: Telemetria y Calidad de Redes Galacticas
+-- HolocronDSL: Lenguaje de Dominio Especifico para Ciencia de Datos (Grupo 5)
+-- Autores: Andres Sebastian Coral Vallejo, Carol Arenas Cardona
+-- Periodo: Semestre 2026-2 - Universidad Sergio Arboleda
+-- =============================================================================
+
+-- 1. Ingestion de datos brutos de telemetria de comunicaciones hiperespaciales
+telemetria_cruda = abrir_holocron "examples/datos/telemetria_redes_galacticas.csv" delimitado_por ","
+
+-- 2. Depuracion: eliminacion de registros clonados y saneamiento de vacios
+telemetria_depurada = telemetria_cruda
+    |> eliminar_clones
+    |> sanar_vacios con 0
+
+-- 3. Filtrado tactico: conservar unicamente nodos en estado operativo
+nodos_operativos = telemetria_depurada
+    |> purgar donde estado_nodo == "Operativo" y latencia_ms > 0
+
+-- 4. Creacion de variables derivadas (forjado de indicadores de rendimiento)
+-- Calculamos la tasa de entrega exitosa de paquetes y el indice de eficiencia
+nodos_analizados = nodos_operativos
+    |> forjar paquetes_efectivos = paquetes_transmitidos - paquetes_perdidos
+    |> forjar tasa_perdida_pct = (paquetes_perdidos * 100) / paquetes_transmitidos
+    |> forjar indice_eficiencia = ancho_banda_gbps / latencia_ms
+
+-- 5. Analisis descriptivo agregado por sector galactico
+resumen_sectores = nodos_analizados
+    |> agrupar por [ sector ]
+    |> resumir [
+        total_nodos = recuento(),
+        ancho_banda_promedio = equilibrio(ancho_banda_gbps),
+        latencia_media = equilibrio(latencia_ms),
+        latencia_maxima = cenit(latencia_ms),
+        latencia_minima = nadir(latencia_ms),
+        dispersion_latencia = desviacion(latencia_ms),
+        paquetes_totales = acumular(paquetes_efectivos)
+    ]
+    |> ordenar por latencia_media ascendente
+
+-- 6. Modelado de regresion lineal simple (ajuste por minimos cuadrados ordinarios)
+-- Hipotesis: La latencia (ms) depende directamente de la distancia fisica (parsecs)
+red_con_prediccion = nodos_analizados
+    |> trazar_regresion [
+        eje_x = distancia_parsecs,
+        eje_y = latencia_ms,
+        destino = latencia_estimada
+    ]
+
+-- 7. Proyecciones holograficas (Visualizaciones en formato PNG - Sin SVG)
+-- Grafica 1: Comparacion de ancho de banda promedio por sector (Barras)
+proyectar_holograma barras resumen_sectores [
+    eje_x = "sector",
+    eje_y = "ancho_banda_promedio",
+    titulo = "Capacidad de Transmision Media por Sector Galactico",
+    guardar = "salidas/caso_estudio_01_barras_sectores.png"
+]
+
+-- Grafica 2: Histograma de distribucion de latencias en la red
+proyectar_holograma histograma nodos_analizados [
+    eje_x = "latencia_ms",
+    titulo = "Distribucion de Frecuencia de Latencias de Red",
+    guardar = "salidas/caso_estudio_02_histograma_latencia.png"
+]
+
+-- Grafica 3: Diagrama de cajas para dispersion del ancho de banda
+proyectar_holograma caja nodos_analizados [
+    eje_y = "ancho_banda_gbps",
+    titulo = "Dispersion y Cuartiles de Ancho de Banda (Gbps)",
+    guardar = "salidas/caso_estudio_03_caja_ancho_banda.png"
+]
+
+-- Grafica 4: Serie de latencia observada ordenada por distancia (Lineas)
+nodos_ordenados = nodos_analizados |> ordenar por distancia_parsecs ascendente
+proyectar_holograma lineas nodos_ordenados [
+    eje_x = "distancia_parsecs",
+    eje_y = "latencia_ms",
+    titulo = "Curva de Degradacion de Senal vs Distancia Estelar",
+    guardar = "salidas/caso_estudio_04_lineas_degradacion.png"
+]
+
+-- Grafica 5: Modelo de Regresion Lineal con Recta de Ajuste MCO y Metricas
+proyectar_holograma regresion nodos_analizados [
+    eje_x = "distancia_parsecs",
+    eje_y = "latencia_ms",
+    titulo = "Modelo de Regresion Lineal: Distancia vs Latencia",
+    guardar = "salidas/caso_estudio_05_regresion_latencia.png"
+]
+
+-- 8. Exportacion de productos verificables en disco
+-- Exportar el resumen estadistico en CSV
+archivar_holocron resumen_sectores en "salidas/caso_estudio_resumen_sectores.csv"
+
+-- Exportar los datos enriquecidos con las predicciones del modelo en Excel nativo (.xls)
+archivar_holocron red_con_prediccion en "salidas/caso_estudio_predicciones.xls"
+
+-- 9. Transmision de telemetria final a la terminal
+transmitir "============================================================"
+transmitir "INFORME FINAL DEL CASO DE ESTUDIO: REDES GALACTICAS"
+transmitir "============================================================"
+transmitir "1. Resumen descriptivo por sector galactico:"
+transmitir resumen_sectores
+transmitir "2. Modelo matematico de prediccion ajustado:"
+transmitir red_con_prediccion
+transmitir "Procesamiento, modelado y proyecciones completadas exitosamente."
