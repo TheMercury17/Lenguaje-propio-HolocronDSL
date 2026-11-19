@@ -37,24 +37,30 @@ endif
 
 ANTLR4 ?= antlr4
 
-.PHONY: help install prepare grammar test test-lexer test-parser test-invalid test-engines test-semantic test-regression test-ds test-ml run-examples check-examples clean
+.PHONY: help install prepare grammar test test-lexer test-parser test-invalid test-engines test-semantic test-regression test-ds test-ml run-examples check-examples run-sustentacion run-factorial run-sigmoide run-xor run-eda run-primos clean
 
 help:
 	@echo "Comandos disponibles para HolocronDSL (Fase 3 - Entrega Final):"
-	@echo "  make install         - Instalar dependencias (crea entorno virtual .venv automaticamente en Linux)"
-	@echo "  make grammar         - Compilar la gramatica ANTLR4 a codigo Python en src/generated"
-	@echo "  make test            - Ejecutar la suite completa de pruebas unitarias (93+ pruebas)"
-	@echo "  make test-lexer      - Ejecutar pruebas del analizador lexico"
-	@echo "  make test-parser     - Ejecutar pruebas sintacticas de construcciones validas"
-	@echo "  make test-invalid    - Ejecutar pruebas sintacticas negativas (deteccion de errores)"
-	@echo "  make test-engines    - Ejecutar pruebas de las bibliotecas propias (Math, IO, Table)"
-	@echo "  make test-semantic   - Ejecutar pruebas del interprete Visitor y errores semanticos"
-	@echo "  make test-regression - Ejecutar pruebas de correlacion y regresion lineal MCO"
-	@echo "  make test-ds         - Ejecutar pruebas de estructuras de datos (Arreglos, Pilas, Colas, Bucles)"
-	@echo "  make test-ml         - Ejecutar pruebas de algoritmos de Machine Learning propios"
-	@echo "  make run-examples    - Ejecutar todos los programas .holo generando CSVs, XLS y PNGs en salidas/"
-	@echo "  make check-examples  - Validar sintacticamente todos los programas .holo en examples/"
-	@echo "  make clean           - Limpiar caches de Python y archivos temporales"
+	@echo "  make install            - Instalar dependencias (crea entorno virtual .venv automaticamente en Linux)"
+	@echo "  make grammar            - Compilar la gramatica ANTLR4 a codigo Python en src/generated"
+	@echo "  make test               - Ejecutar la suite completa de pruebas unitarias (93+ pruebas)"
+	@echo "  make test-lexer         - Ejecutar pruebas del analizador lexico"
+	@echo "  make test-parser        - Ejecutar pruebas sintacticas de construcciones validas"
+	@echo "  make test-invalid       - Ejecutar pruebas sintacticas negativas (deteccion de errores)"
+	@echo "  make test-engines       - Ejecutar pruebas de las bibliotecas propias (Math, IO, Table)"
+	@echo "  make test-semantic      - Ejecutar pruebas del interprete Visitor y errores semanticos"
+	@echo "  make test-regression    - Ejecutar pruebas de correlacion y regresion lineal MCO"
+	@echo "  make test-ds            - Ejecutar pruebas de estructuras de datos (Arreglos, Pilas, Colas, Bucles)"
+	@echo "  make test-ml            - Ejecutar pruebas de algoritmos de Machine Learning propios"
+	@echo "  make run-examples       - Ejecutar todos los programas .holo generando CSVs, XLS y PNGs en salidas/"
+	@echo "  make check-examples     - Validar sintacticamente todos los programas .holo en examples/"
+	@echo "  make run-sustentacion   - Ejecutar los 5 programas y analisis de sustentacion final"
+	@echo "  make run-factorial      - Ejecutar Ejercicio 1 (Factorial 5-100 y benchmark con Python)"
+	@echo "  make run-sigmoide       - Ejecutar Ejercicio 2 (Proyeccion analitica de la funcion sigmoide)"
+	@echo "  make run-xor            - Ejecutar Ejercicio 3 (Perceptron Multicapa para XOR y Backprop)"
+	@echo "  make run-eda            - Ejecutar Ejercicio 4 (Analisis exploratorio sobre censo_ingresos.xlsx)"
+	@echo "  make run-primos         - Ejecutar Ejercicio 5 (Filtro funcional de numeros primos 1 a 100)"
+	@echo "  make clean              - Limpiar caches de Python y archivos temporales"
 
 install:
 ifeq ($(OS),Windows_NT)
@@ -137,6 +143,41 @@ check-examples: prepare
 	$(PYTHON) src/cli.py examples/05_proyecto_completo.holo --check
 	$(PYTHON) src/cli.py examples/06_caso_estudio_final.holo --check
 	$(PYTHON) src/cli.py examples/07_estructuras_y_machine_learning.holo --check
+
+run-sustentacion: prepare
+	@echo "============================================================"
+	@echo "EJECUTANDO LOS 5 EJERCICIOS DE SUSTENTACION FINAL"
+	@echo "============================================================"
+	$(PYTHON) holocron.py "Ejercicios sustentacion final/01_factorial_rendimiento.holo"
+	$(PYTHON) "Ejercicios sustentacion final/benchmark_factorial.py"
+	$(PYTHON) holocron.py "Ejercicios sustentacion final/02_visualizar_sigmoide.holo"
+	$(PYTHON) "Ejercicios sustentacion final/generar_sigmoide.py"
+	$(PYTHON) holocron.py "Ejercicios sustentacion final/03_perceptron_multicapa_xor.holo"
+	$(PYTHON) "Ejercicios sustentacion final/analisis_mlp_xor.py"
+	$(PYTHON) holocron.py "Ejercicios sustentacion final/04_analisis_exploratorio_xlsx.holo"
+	$(PYTHON) "Ejercicios sustentacion final/analisis_eda_xlsx.py"
+	$(PYTHON) holocron.py "Ejercicios sustentacion final/05_filtro_primos_1_100.holo"
+	$(PYTHON) "Ejercicios sustentacion final/verificar_primos.py"
+
+run-factorial: prepare
+	$(PYTHON) holocron.py "Ejercicios sustentacion final/01_factorial_rendimiento.holo"
+	$(PYTHON) "Ejercicios sustentacion final/benchmark_factorial.py"
+
+run-sigmoide: prepare
+	$(PYTHON) holocron.py "Ejercicios sustentacion final/02_visualizar_sigmoide.holo"
+	$(PYTHON) "Ejercicios sustentacion final/generar_sigmoide.py"
+
+run-xor: prepare
+	$(PYTHON) holocron.py "Ejercicios sustentacion final/03_perceptron_multicapa_xor.holo"
+	$(PYTHON) "Ejercicios sustentacion final/analisis_mlp_xor.py"
+
+run-eda: prepare
+	$(PYTHON) holocron.py "Ejercicios sustentacion final/04_analisis_exploratorio_xlsx.holo"
+	$(PYTHON) "Ejercicios sustentacion final/analisis_eda_xlsx.py"
+
+run-primos: prepare
+	$(PYTHON) holocron.py "Ejercicios sustentacion final/05_filtro_primos_1_100.holo"
+	$(PYTHON) "Ejercicios sustentacion final/verificar_primos.py"
 
 clean:
 	$(PYTHON_SYS) -c "import pathlib, shutil; [shutil.rmtree(p, ignore_errors=True) for p in pathlib.Path('.').rglob('__pycache__')]"

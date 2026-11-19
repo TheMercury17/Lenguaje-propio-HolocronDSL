@@ -151,49 +151,156 @@ El programa demuestra dos tecnicas de programacion:
 
 ---
 
-## 3. GUIA DE EJECUCION EN LINUX Y WINDOWS
+## 3. GUIA PASO A PASO PARA MAQUINA VIRTUAL KALI LINUX
 
-Todos los comandos deben ejecutarse desde la raiz del repositorio (`Lenguaje propio/`):
+A continuacion se presentan los comandos exactos y secuenciales para preparar el entorno y ejecutar cada ejercicio dentro de una maquina virtual Kali Linux (en VirtualBox o VMware).
 
-### Ejecutar los programas nativos en HolocronDSL:
+### Paso 0: Preparacion del Entorno Base en Kali Linux
+Abra una terminal en Kali Linux (`kali@kali` o `root`) y asegure los paquetes del sistema:
 ```bash
-# Ejercicio 1: Factorial 5-100
+sudo apt update
+sudo apt install -y python3 python3-pip python3-venv git default-jre antlr4
+```
+
+### Paso 1: Clonar o Actualizar el Repositorio
+```bash
+# Opcion A: Si se descarga por primera vez
+git clone https://github.com/TheMercury17/Lenguaje-propio-HolocronDSL.git
+cd Lenguaje-propio-HolocronDSL
+
+# Opcion B: Si ya se encuentra descargado en la carpeta de descargas
+cd ~/Downloads/Lenguaje-propio-HolocronDSL-main
+git pull origin main
+```
+
+### Paso 2: Configuracion de Dependencias y Entorno Virtual (PEP 668)
+Kali Linux aplica la proteccion PEP 668 (`externally-managed-environment`), por lo cual se recomienda crear o activar un entorno virtual:
+```bash
+# Opcion rapida mediante Makefile (crea y activa .venv automaticamente):
+make install
+
+# O manualmente:
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Paso 3: Verificacion Inicial del Sistema
+```bash
+# Compilar la gramatica si fuera necesario
+make grammar
+
+# Ejecutar la suite completa de 93 pruebas unitarias
+make test
+# O directamente:
+python3 run_tests.py --all
+```
+
+---
+
+### Paso 4: Ejecucion Paso a Paso de Cada Ejercicio de Sustentacion
+
+#### Ejercicio 1: Factorial (5 al 100) y Benchmark de Rendimiento
+```bash
+# 1.1 Ejecutar en el lenguaje propio HolocronDSL:
 python3 holocron.py "Ejercicios sustentacion final/01_factorial_rendimiento.holo"
 
-# Ejercicio 2: Generacion y proyeccion de la funcion sigmoide
-python3 holocron.py "Ejercicios sustentacion final/02_visualizar_sigmoide.holo"
-
-# Ejercicio 3: Perceptron Multicapa para XOR
-python3 holocron.py "Ejercicios sustentacion final/03_perceptron_multicapa_xor.holo"
-
-# Ejercicio 4: Analisis Exploratorio sobre censo_ingresos.xlsx
-python3 holocron.py "Ejercicios sustentacion final/04_analisis_exploratorio_xlsx.holo"
-
-# Ejercicio 5: Filtro funcional de primos del 1 al 100
-python3 holocron.py "Ejercicios sustentacion final/05_filtro_primos_1_100.holo"
-```
-
-### Ejecutar los scripts de benchmark, graficacion y validacion formal:
-```bash
-# Benchmark comparativo de factorial (HolocronDSL vs Python)
+# 1.2 Ejecutar el benchmark comparativo con Python:
 python3 "Ejercicios sustentacion final/benchmark_factorial.py"
 
-# Analisis detallado de la sigmoide y su derivada
+# 1.3 Ver el grafico de rendimiento generado en Kali:
+ristretto "Ejercicios sustentacion final/salidas/comparativa_rendimiento_factorial.png" &
+```
+*Via Makefile:* `make run-factorial`
+
+---
+
+#### Ejercicio 2: Proyeccion y Analisis de la Funcion Sigmoide
+```bash
+# 2.1 Ejecutar el programa en HolocronDSL (proyecta y exporta CSV y XLS):
+python3 holocron.py "Ejercicios sustentacion final/02_visualizar_sigmoide.holo"
+
+# 2.2 Ejecutar la proyeccion analitica detallada (curva y derivada):
 python3 "Ejercicios sustentacion final/generar_sigmoide.py"
 
-# Analisis teoretico del MLP para XOR y convergencia de gradiente
+# 2.3 Visualizar las imagenes generadas en Kali:
+ristretto "Ejercicios sustentacion final/salidas/grafica_sigmoide_completa.png" &
+```
+*Via Makefile:* `make run-sigmoide`
+
+---
+
+#### Ejercicio 3: Perceptron Multicapa para XOR (Estimador y Graficas)
+```bash
+# 3.1 Ejecutar el entrenamiento y clasificacion en HolocronDSL:
+python3 holocron.py "Ejercicios sustentacion final/03_perceptron_multicapa_xor.holo"
+
+# 3.2 Ejecutar el analisis teorico, frontera de decision 2D y curva de perdida:
 python3 "Ejercicios sustentacion final/analisis_mlp_xor.py"
 
-# Analisis estadistico formal del EDA sobre .xlsx
+# 3.3 Ver la frontera de decision no lineal y la convergencia en Kali:
+ristretto "Ejercicios sustentacion final/salidas/frontera_decision_xor.png" &
+ristretto "Ejercicios sustentacion final/salidas/convergencia_perdida_xor.png" &
+```
+*Via Makefile:* `make run-xor`
+
+---
+
+#### Ejercicio 4: Analisis Exploratorio de Datos (EDA) sobre `censo_ingresos.xlsx`
+```bash
+# 4.1 Ejecutar el pipeline de analisis sobre 10,280 observaciones en HolocronDSL:
+python3 holocron.py "Ejercicios sustentacion final/04_analisis_exploratorio_xlsx.holo"
+
+# 4.2 Ejecutar el script descriptivo complementario:
 python3 "Ejercicios sustentacion final/analisis_eda_xlsx.py"
 
-# Validacion matematica y computacional del filtro de primos
+# 4.3 Visualizar los graficos generados (barras, cajas, histograma) en Kali:
+ristretto "Ejercicios sustentacion final/salidas/eda_ingreso_por_educacion.png" &
+ristretto "Ejercicios sustentacion final/salidas/eda_dispersion_ingreso_sexo.png" &
+ristretto "Ejercicios sustentacion final/salidas/eda_distribucion_edad.png" &
+```
+*Via Makefile:* `make run-eda`
+
+---
+
+#### Ejercicio 5: Filtro Funcional de Numeros Primos del 1 al 100
+```bash
+# 5.1 Ejecutar el filtrado funcional de orden superior en HolocronDSL:
+python3 holocron.py "Ejercicios sustentacion final/05_filtro_primos_1_100.holo"
+
+# 5.2 Ejecutar la verificacion formal y comparativa con filter():
 python3 "Ejercicios sustentacion final/verificar_primos.py"
 ```
+*Via Makefile:* `make run-primos`
 
-### Ejecutar la suite completa de pruebas unitarias:
+---
+
+### Paso 5: Opciones de Ejecucion Automatizada en Kali Linux
+
+#### Opcion 1: Mediante Makefile
 ```bash
-python3 run_tests.py --all
+# Ejecutar los 5 ejercicios completos en una sola secuencia:
+make run-sustentacion
+```
+
+#### Opcion 2: Mediante el Script Interactivo para Kali Linux
+```bash
+# Otorgar permisos de ejecucion
+chmod +x "Ejercicios sustentacion final/ejecutar_en_kali.sh"
+
+# Ejecutar el menu interactivo:
+./"Ejercicios sustentacion final/ejecutar_en_kali.sh"
+
+# O ejecutar los 5 de manera directa pasando el argumento '1':
+./"Ejercicios sustentacion final/ejecutar_en_kali.sh" 1
+```
+
+#### Opcion 3: Explorar Todos los Archivos Generados en Kali Linux
+```bash
+# Abrir el gestor de archivos Thunar en la carpeta de salidas:
+thunar "Ejercicios sustentacion final/salidas" &
+# O con xdg-open:
+xdg-open "Ejercicios sustentacion final/salidas" &
 ```
 
 ---

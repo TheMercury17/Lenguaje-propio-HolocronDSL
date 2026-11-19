@@ -655,11 +655,19 @@ El proyecto incluye un `Makefile` compatible con terminales Linux y Windows:
 * `make help`: Muestra el resumen de todos los comandos disponibles.
 * `make install`: Crea el entorno virtual e instala los requerimientos.
 * `make grammar`: Compila el archivo ANTLR4 `HolocronDSL.g4` hacia Python en `src/generated/`.
-* `make test`: Ejecuta la suite completa de 61 pruebas unitarias e integrales.
+* `make test`: Ejecuta la suite completa de 93 pruebas unitarias e integrales.
 * `make test-lexer`: Ejecuta únicamente las pruebas del analizador léxico.
 * `make test-parser`: Ejecuta las pruebas del analizador sintáctico.
 * `make test-semantic`: Ejecuta las pruebas semánticas y del evaluador Visitor.
+* `make test-ds`: Ejecuta pruebas de estructuras de datos (Arreglos, Pilas, Colas, Bucles).
+* `make test-ml`: Ejecuta pruebas de algoritmos de Machine Learning propios.
 * `make run-examples`: Ejecuta todos los programas `.holo` de demostración y genera las salidas.
+* `make run-sustentacion`: Ejecuta los 5 programas y análisis de la sustentación final.
+* `make run-factorial`: Ejecuta el Ejercicio 1 (Factorial 5-100 y benchmark de rendimiento).
+* `make run-sigmoide`: Ejecuta el Ejercicio 2 (Proyección de función sigmoide y su derivada).
+* `make run-xor`: Ejecuta el Ejercicio 3 (Perceptrón Multicapa para XOR y Backpropagation).
+* `make run-eda`: Ejecuta el Ejercicio 4 (Análisis exploratorio sobre censo_ingresos.xlsx).
+* `make run-primos`: Ejecuta el Ejercicio 5 (Filtro funcional de primos del 1 al 100).
 * `make clean`: Elimina archivos temporales, cachés de Python (`__pycache__`) y logs.
 
 ### 5.4 Uso de la Interfaz de Línea de Comandos (`holocron.py`)
@@ -717,6 +725,88 @@ En la sustentación del primer corte, cuando se intentó guardar un archivo en o
    # Abrir directamente en LibreOffice Calc
    libreoffice salidas/reporte.xls &
    ```
+
+### 5.7 Comandos Paso a Paso para los 5 Ejercicios de Sustentación en Kali Linux
+
+Para defender la sustentación en la máquina virtual Kali Linux, se deben ejecutar los siguientes comandos directamente en la terminal:
+
+```bash
+# Navegar a la carpeta del proyecto
+cd ~/Downloads/Lenguaje-propio-HolocronDSL-main  # O la ruta donde se encuentre clonado
+
+# Activar el entorno virtual previamente configurado
+source .venv/bin/activate
+```
+
+#### Ejercicio 1: Factorial del 5 al 100 y Comparación con Python
+```bash
+# 1. Ejecutar el cálculo iterativo en HolocronDSL:
+python3 holocron.py "Ejercicios sustentacion final/01_factorial_rendimiento.holo"
+
+# 2. Ejecutar el benchmark comparativo frente a Python:
+python3 "Ejercicios sustentacion final/benchmark_factorial.py"
+
+# 3. Visualizar la gráfica generada en Kali Linux:
+ristretto "Ejercicios sustentacion final/salidas/comparativa_rendimiento_factorial.png" &
+```
+
+#### Ejercicio 2: Visualización de la Función Sigmoide
+```bash
+# 1. Evaluar y proyectar la sigmoide en HolocronDSL:
+python3 holocron.py "Ejercicios sustentacion final/02_visualizar_sigmoide.holo"
+
+# 2. Generar el análisis detallado de la sigmoide y su derivada:
+python3 "Ejercicios sustentacion final/generar_sigmoide.py"
+
+# 3. Ver la gráfica de alta resolución en Kali Linux:
+ristretto "Ejercicios sustentacion final/salidas/grafica_sigmoide_completa.png" &
+```
+
+#### Ejercicio 3: Perceptrón Multicapa para XOR (Estimador y Gráficas)
+```bash
+# 1. Entrenar y estimar XOR con el MLP en HolocronDSL:
+python3 holocron.py "Ejercicios sustentacion final/03_perceptron_multicapa_xor.holo"
+
+# 2. Generar el análisis teórico, curva de pérdida y frontera 2D:
+python3 "Ejercicios sustentacion final/analisis_mlp_xor.py"
+
+# 3. Visualizar la frontera de decisión no lineal y la convergencia en Kali:
+ristretto "Ejercicios sustentacion final/salidas/frontera_decision_xor.png" &
+ristretto "Ejercicios sustentacion final/salidas/convergencia_perdida_xor.png" &
+```
+
+#### Ejercicio 4: Análisis Exploratorio de Datos (EDA) sobre `censo_ingresos.xlsx`
+```bash
+# 1. Ejecutar el análisis sobre los 10,280 registros en HolocronDSL:
+python3 holocron.py "Ejercicios sustentacion final/04_analisis_exploratorio_xlsx.holo"
+
+# 2. Ejecutar el script descriptivo complementario:
+python3 "Ejercicios sustentacion final/analisis_eda_xlsx.py"
+
+# 3. Ver los 3 gráficos proyectados (barras, cajas, histograma) en Kali:
+ristretto "Ejercicios sustentacion final/salidas/eda_ingreso_por_educacion.png" &
+ristretto "Ejercicios sustentacion final/salidas/eda_dispersion_ingreso_sexo.png" &
+ristretto "Ejercicios sustentacion final/salidas/eda_distribucion_edad.png" &
+```
+
+#### Ejercicio 5: Filtro Funcional de Números Primos del 1 al 100
+```bash
+# 1. Ejecutar el filtrado de orden superior en HolocronDSL:
+python3 holocron.py "Ejercicios sustentacion final/05_filtro_primos_1_100.holo"
+
+# 2. Ejecutar la validación formal de los 25 números primos:
+python3 "Ejercicios sustentacion final/verificar_primos.py"
+```
+
+#### Ejecución Automatizada Total
+```bash
+# Opcion A: Con el Makefile
+make run-sustentacion
+
+# Opcion B: Con el script interactivo para Kali
+chmod +x "Ejercicios sustentacion final/ejecutar_en_kali.sh"
+./"Ejercicios sustentacion final/ejecutar_en_kali.sh" 1
+```
 
 ---
 
